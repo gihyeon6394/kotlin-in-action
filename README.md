@@ -4,7 +4,7 @@
 
 ### PART 1 INTRODUCING KOTLIN
 
-1. Kotlin: what and why
+1. [Kotlin: what and why](1_kotlin-what-and-why.md)
 2. Kotlin basics
 3. Defining and calling functions
 4. Classes, objects, and interfaces
