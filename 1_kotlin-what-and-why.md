@@ -39,11 +39,82 @@ fun main(args: Array<String>) {
 
 ### Target platforms : server-side, Android, anywhere Java runs
 
+java 개발자들에게 도움을 줌
+
+- server-side 코드 작성 (backends web application)
+- Android 기기에서 동작할 mobile applciation 개발
+- 기타
+    - Intel Multi-OS 엔진으로 iOS 기기에서 코틀린 코드 실행
+    - TornadoFX와 JavaFX 실행
+- kotlin을 Javascript로 컴파일
+    - 브라우저에서 Kotlin 코드 실행 가능
+
 ### Statically typed
+
+- Java처럼 Kotlin도 _statically typed_ 언어
+    - _statically typed_ : 다음을 컴파일 타임에 파악
+        - 모든 표현식
+        - 작성한 메서드, 필드가 사용중인 오브젝트에 있는지
+    - _dynamically typed_ : 다음을 런타임에 파악
+        - 선언한 변수, 함수, 데이터 리턴 타입, 메서드, 필드 레퍼런스 등
+        - Groovy, JRupy
+
+#### type inference
+
+````kotlin
+val x = 1 // Kotlin이 자동으로 x를 Int로 선언
+````
+
+- _type inference_ :  kotlin은 Java와 달리 타입 선언을 생략해도 됨
+- 장점 1. 성능 : 메서드 호출이 빠름 (런타임에 어떤 메서드를 호출할 지 판별 필요 없음)
+- 장점 2. Reliability : 컴파일러가 프로그램의 정확성을 검증, 런타임에 충돌 가능성 해소
+- 장점 3. 유지보수성
+- 장점 4. tool support : 리팩터링, 간결한 코드, IDE 기능 활용 가능
+
+#### nullable type
+
+- `null` pointer 예외를 컴파일 타임에 감지할 수 있게 함
+
+#### function type
+
+- functional programming 의 기본 아이디어
 
 ### Functional and object-oriented
 
+코틀린이 지원하는 것
+
+- _Function types_ : 함수를 파라미터로 전달/리턴 가능
+- _Lamda expressions_ : 코드를 블록으로 감싸서 보일러페이트 없이 전달
+- _Data classes_ : 불변 value object
+- functional style로 작성된 풍부한 API
+
+#### Functional programming의 기본 컨셉
+
+- _First-class functions_ : function을 value처럼 취급
+    - function을 변수에 담고, 파라미터로 전달, 리턴할 수 있음
+- _Immutablity_ : 불변객체를 다룸
+- _No side effects_ : 동일한 input에 동일한 output을 리턴하는 pure function
+    - 바깥 세상의 오브젝트나 다른 오브젝트의 상태를 변경하지 않음
+
+#### Functional style의 이점
+
+- _conciseness_ : 엘레강스하고 간결함, 중복이 줄어듦
+    - 람다 표현식으로 익명 함수를 전달 가능
+- _safe multithreading_
+    - 멀티 스레딩 프로그램의 오류 핵심은 멀티 스레드에서 적절한 동기화로 동일한 데이터를 접근하는 것
+    - pure function에서 불변객체에 접근하면 위처럼 구현 가능
+- _easier testing_ : side effect가 없는 function은 고립 시켜 (많은 setup code 필요 없음) 테스트가 가능
+
+```kotlin
+fun findKarina() = findPerson { it.name == "Karina" }
+
+fun findHani() = findPerson { it.name == "Hani" }
+```
+
 ### Free and open source
+
+- Kotlin의 컴파일러, 라이브러리, 관련 tool은 모두 오픈소스
+- IntelliJ, Android Studio, Eclipse IDE 로 개발 가능
 
 ## 3. Kotlin applications
 
