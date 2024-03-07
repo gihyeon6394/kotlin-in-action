@@ -176,11 +176,46 @@ println(russia.name)
 
 ### Pragmatic
 
+- _pragmatic_ : Kotlin은 real-world 프로그래밍을 위해 만들어짐
+- 많은 현실 세계 애플리케이션을 개발하기 위해 개발된 언어
+- 연구중인 언어가 아닌 실제로 사용되는 언어
+- 특정 패러다임이나 프로그래밍 스타일을 강요하지 않음
+
 ### Concise
+
+- 간결한 코드는 읽고 이해하기 쉬움
+- 문접이 코드의 의도를 표현함
+- 보일러플레이트 코드를 줄임
+    - Java getter/setter, equals, hashCode, toString, 파라미터 생성자 등
+- 람다 지원
 
 ### Safe
 
+- _safe_ 언어 : 프로그램에 에러를 방지하는 언어
+- 컴파일러가 정보와 코드를 분석하여 오류를 잡아냄
+    - trade-off : 정보가 많아야 오류 분석 가능
+- Kotlin은 Java보다 더 높은 레벨의 안전을 추구하면서 동시에 정보를 많이 안주어도 됨
+- type safety : type inference로 타입을 명시하지 않아도 컴파일러가 추론
+- null safety : nullable type을 지원하여 null pointer exception을 방지
+
+```kotlin
+val s: String? = null // nullable type
+val s2: String = "" // non-nullable type
+```
+
+- `ClassCastException`을 방지하기 위한 코드에서 `is` 연산자로 체크와 캐스팅을 한번에 수행
+
+```kotlin
+if (value is String)
+    println(value.toUpperCase())
+```
+
 ### Interoperable
+
+- 기존 라이브러리 사용 가능
+- 코틀린에서 Java 코드를 호출 가능
+- cross-language project를 완벽 지원
+    - 임의의로 섞인 Java, Kotlin 코드를 컴파일 가능
 
 ## 5. Using the Kotlin tools
 
