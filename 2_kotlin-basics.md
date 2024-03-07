@@ -143,11 +143,100 @@ fun printName(name: String) {
 
 ## 2. Classes and properties
 
+```java
+public class Person {
+    private final String name;
+
+    public Person(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+}
+```
+
+```kotlin
+class Person(val name: String)
+```
+
+- kotlin 에서는 `public` 이 기본 접근제어자 (생략 가능)
+
 ### Properties
+
+- _property_ : 필드에 접근할 수 있는 접근자
+- Kotlin에서는 propery가 first-class language feature
+
+````kotlin
+class Person {
+    val name: String, // Read-only (getter)
+    var isMarried: Boolean // Writable (getter/setter)
+}
+
+fun tmp() {
+    val person = Person("Karina", false)
+    println(person.name); // use getter
+}
+````
 
 ### Custom accessors
 
+```kotlin
+class Rectangle(val height: Int, val width: Int) {
+    val isSquare: Boolean
+        get() = height == width
+    /*get() {
+        return height == width
+    }*/
+}
+```
+
 ### Kotlin source code layout: directories and packages
+
+![img_3.png](img_3.png)
+
+- Java에서는 같은 디렉터리에 하나의 클래스를 하나의 파일에 선언
+
+![img_4.png](img_4.png)
+
+- kotlin에서는 1개 이상의 클래스를 하나의 `.kt` 파일에 선언 가능
+- 클래스가 작고 비슷하다면 하나의 파일에 몰아두는 것을 지향
+
+--- 
+
+- `package` statement를 파일 시작에 명시
+- 같은 패키지에 있으면 `import` 필요 없음 (자동 import)
+
+```kotlin
+package our.pack
+
+import java.util.Random // import java standard lib
+
+class Rectangle(val height: Int, val width: Int) {
+    val isSquare: Boolean
+        /*get() {
+            return height == width
+        }*/
+        get() = height == width
+}
+
+fun createRandomRectangle(): Rectangle {
+    val random = Random()
+    return Rectangle(random.nextInt(), random.nextInt())
+}
+```
+
+- top-level funtion을 직접 import 가능
+- `*` 으로 해당 패키지의 모든 클래스와 top-level function import
+
+```kotlin
+package other.pack
+
+import our.pack.createRandomRectangle
+
+// ...
+```
 
 ## 3. Representing and handling choices: enums and `when`
 
