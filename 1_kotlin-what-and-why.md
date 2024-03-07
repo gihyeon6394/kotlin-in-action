@@ -219,16 +219,42 @@ if (value is String)
 
 ## 5. Using the Kotlin tools
 
+- Java처럼 실행 전에 컴파일 필요
+
 ### Compiling Kotlin code
 
-### Plug-in for INtelliJ IDEA and Android Studio
+![img_1.png](img_1.png)
+
+1. `kotlinc` 명령어 :  `.kt` 확장자의 파일을 컴파일
+2. 코틀린 컴파일러가 `.kt` 파일을 `.class` 파일로 변환
+3. `.class` 파일을 JVM에서 실행
+
+```shell
+kotlinc <source file or directory> -include-runtime -d <jar name>
+java -jar <jar name>
+```
+
+- _Kotlin runtime library_ : 코틀린 표준 라이브러리
+    - 코틀린의 표준 라이브러리 클래스, 확장들을 포함
+- Maven, Gradle, Ant 빌드 도구를 지원
+
+### Plug-in for IntelliJ IDEA and Android Studio
+
+- IntelliJ IDEA : 코틀린을 개발할 수 있는 가장 좋은 IDE
+- 안정적이고 성숙하고 완전히 kotlin을 지원
 
 ### Interactive shell
+
+- interactive shell (e.g. _REPL_) 을 사용해 간단한 코드를 실행하고 테스트 가능
 
 ### Eclipse plug-in
 
 ### Online playground
 
+- http://try.kotl.in/
+
 ### Java-to-Kotlin converter
+
+- Java 코드를 코틀린 코드로 변환하는 툴
 
 ## 6. Summary
