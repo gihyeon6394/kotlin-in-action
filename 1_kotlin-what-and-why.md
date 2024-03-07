@@ -120,7 +120,57 @@ fun findHani() = findPerson { it.name == "Hani" }
 
 ### Kotlin on the server side
 
+#### Server-side program?
+
+- HTML을 리턴하는 Web application
+- HTTP를 통해 JSON을 리턴하는 JSON API 기반의 mobile application
+- RPC 프로토콜로 다른 마이크로 서비스와 통신하는 마이크로 서비스
+
+#### Kotlin server-side 프로그램의 장점
+
+- 기존의 Java code와 호환
+- 시스템 코드가 더 간결해지고 유지보수가 쉬워짐
+- Builder pattern
+
+````kotlin
+fun renderPersonList(persons: Collection<Person>) =
+    createHTML().table {
+        for (person in persons) {
+            tr {
+                td { +person.name }
+                td { +person.age }
+            }
+        }
+    }
+}
+````
+
+```kotlin
+object CountryTable : IdTable() {
+    val name = varchar("name", 250).uniqueIndex()
+    val iso = varchar("iso", 2).uniqueIndex()
+}
+
+class Country(id: EntityID) : Entity(id) {
+    var name: Stirng by CountryTable.name
+    var iso: String by CountryTable.iso
+}
+
+var russia = Country.find { CountryTable.iso eq "RU" }.first()
+
+println(russia.name)
+````
+
 ### Kotlin on Android
+
+- 전형적인 모바일 어플리케이션은 엔터프라이즈 애플리케이션과 다름
+    - 더 작고, 다양한 디바이스에서 동작해야함
+- Kotlin과 Android Framework를 결합해 더 생산적으로 개발 가능
+
+#### reliability
+
+- NPE와 같은 오류를 컴파일 타임에 잡아냄
+- Java 6와 완벽히 호환
 
 ## 4. The philosophy of Kotlin
 
