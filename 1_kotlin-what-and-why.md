@@ -258,3 +258,15 @@ java -jar <jar name>
 - Java 코드를 코틀린 코드로 변환하는 툴
 
 ## 6. Summary
+
+- Kotlin은 statically typed, type inference를 통해 간결한 코드로 안전하고 좋은 성능 지원
+- object-oriented, functional programming을 지원
+    - first-class functions, 테스트 간소화, multi-threading 프로그래밍 지원, 불변객체 활용
+- 기존 Java 코드와 호환, server-side application에 적합
+- Android 개발에도 적합
+    - 간결한 런타임, Android API을 지원하는 컴파일러
+- 무료 오픈 소스, IntelliJ IDEA, Android Studio, Eclipse 등의 IDE 지원
+- Pragmatic, safe, concise, interoperable
+    - NPE같은 잦은 에러를 방지
+    - 가독성 높은 코드 작성 가능
+    - Java와 호환
