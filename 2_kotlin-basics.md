@@ -129,12 +129,12 @@ ageKarina = "23" // compile error
 
 ```kotlin
 fun main(args: Array<String>) {
-  val name = if (args.size > 0) args[0] else "Kotlin"
-  println("Hello, $name!")
+    val name = if (args.size > 0) args[0] else "Kotlin"
+    println("Hello, $name!")
 }
 
 fun printName(name: String) {
-  println("Name: ${if (name.length > 0) name else "Unknown"}")
+    println("Name: ${if (name.length > 0) name else "Unknown"}")
 }
 ```
 
@@ -240,19 +240,173 @@ import our.pack.createRandomRectangle
 
 ## 3. Representing and handling choices: enums and `when`
 
+| Java     | Kotlin |
+|----------|--------|
+| `switch` | `when` |
+
 ### Declaring enum classes
+
+````kotlin
+enum class Color {
+    RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET
+}
+````
+
+```kotlin
+enum class Idol(val teamName: String, val memberCount: Int) {
+    TWICE("TWICE", 9),
+    BLACKPINK("BLACKPINK", 4),
+    AESPA("AESPA", 4); // kotlin 문법에서 유일하게 세미콜론 필요
+
+    fun teamNameWithMemberCount() = "$teamName has $memberCount members"
+}
+
+fun main(args: Array<String>) {
+    val idol = Idol.TWICE
+    println(idol.teamNameWithMemberCount())
+}
+```
 
 ### Using "when" to deal with enum classes
 
+```kotlin
+fun printLeader(idol: Idol) =
+    when (idol) {
+        Idol.TWICE -> println("Jihyo")
+        Idol.BLACKPINK -> println("Jisoo")
+        Idol.AESPA -> println("Karina")
+    }
+```
+
+- `when` 은 expression이므로 값을 반환할 수 있음
+- Java의 `switch`와 달리 `break`가 필요 없음
+
+```kotlin
+fun printFavorite(idol: Idol) {
+    val favorite = when (idol) {
+        Idol.AESPA -> "Winter"
+        Idol.TWICE, Idol.BLACKPINK -> "I can't choose"
+    }
+    println("My favorite member of $idol is $favorite")
+}
+```
+
+- `,` 로 여러 값에 대한 조건을 지정할 수 있음
+
 ### Using "when" to deal with arbitrary objects
+
+- `when` 에 모든 타입의 오브젝트 사용 가능
+
+```kotlin
+fun hasFriendship(idol1: Idol, idol2: Idol) =
+    when (setOf(idol1, idol2)) {
+        setOf(Idol.TWICE, Idol.BLACKPINK) -> true
+        setOf(Idol.AESPA, Idol.ITZY) -> true
+        setOf(Idol.AESPA, Idol.NEW_JEANS) -> true
+        else -> false
+    }
+```
 
 ### Using "when" without an argument
 
+```kotlin
+fun hasFriendshipWithoutArgs(idol1: Idol, idol2: Idol) =
+    when {
+        idol1 == Idol.TWICE && idol2 == Idol.BLACKPINK -> true
+        idol1 == Idol.AESPA && idol2 == Idol.ITZY -> true
+        idol1 == Idol.AESPA && idol2 == Idol.NEW_JEANS -> true
+        else -> false
+    }
+```
+
+- `when` 의 argument가 없으면 각 조건의 결과가 `true`인지 확인
+- 조건마다 `Set` Object를 생성하는 `hasFriendship` 보다 효율적 (garbage 생성을 줄임)
+
 ### Smart casts: combining type checks and casts
+
+![img_5.png](img_5.png)
+
+```kotlin
+interface Expr
+class Num(val value: Int) : Expr
+class Sum(val left: Expr, val right: Expr) : Expr
+
+fun main() {
+    // 1 + (2 + 3)
+    val sum = Sum(
+        Num(1), Sum(
+            Num(2), Num(3)
+        )
+    )
+}
+```
+
+| Java         | Kotlin |
+|--------------|--------|
+| `instanceof` | `is`   |
+
+- _smart cast_ : type check 후 두번째부터는 자동으로 캐스팅
+- `as` 연산자 : 명시적 형변환
+
+```kotlin
+fun eval(e: Expr): Int {
+    if (e is Num) {
+        val n = e as Num // No cast needed (smart cast)
+        return n.value
+    }
+
+    if (e is Sum) {
+        return evalJavaStyle(e.left) + evalJavaStyle(e.right)
+    }
+
+    throw IllegalArgumentException("Unknown expression")
+}
+```
+
+![img_6.png](img_6.png)
 
 ### Refactoring "if" with "when"
 
+- kotlin에는 ternary operator (삼항 연산자)가 없음
+- `if`가 expression이므로 `when`으로 대체 가능
+
+```kotlin
+fun eval2(e: Expr): Int =
+    if (e is Num) e.value // Cascade 'if' should be replaced with 'when' 
+    else if (e is Sum) eval2(e.left) + eval2(e.right)
+    else throw IllegalArgumentException("Unknown expression")
+
+fun eval3(e: Expr): Int =
+    when (e) {
+        is Num -> e.value
+        is Sum
+        -> eval3(e.left) + eval3(e.right)
+        else -> throw IllegalArgumentException("Unknown expression")
+    }
+```
+
 ### Blocks as branches of "if" and "when"
+
+```kotlin
+fun evalWithLogging(e: Expr): Int = when (e) {
+    is Num -> {
+        println("num: ${e.value}")
+        e.value
+    }
+
+    is Sum -> {
+        val left = evalWithLogging(e.left)
+        val right = evalWithLogging(e.right)
+        println("sum: $left + $right")
+        left + right
+    }
+
+    else -> throw IllegalArgumentException("Unknown expression")
+}
+```
+
+- `when`의 각 branch는 block으로 구성 가능
+- rule : _block의 마지막 expression이 branch의 결과가 됨_
 
 ## 4. Iterating over things: `while` and `for` loops
 
