@@ -277,7 +277,7 @@ fun printLeader(idol: Idol) =
         Idol.AESPA -> println("Karina")
     }
 ```
-
+ 
 - `when` 은 expression이므로 값을 반환할 수 있음
 - Java의 `switch`와 달리 `break`가 필요 없음
 
