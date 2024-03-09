@@ -495,8 +495,56 @@ fun isNotDigit(c: Char) = c !in '0'..'9'
 
 ## 5. Exception in Kotlin
 
+```kotlin
+fun main(args: Array<String>) {
+    val percentage = args[0].toInt()
+
+    if (percentage !in 0..100) {
+        throw IllegalArgumentException("A percentage value must be between 0 and 100: $percentage")
+    }
+
+    val percentage2 = if (args[1].toInt() in 0..100)
+        args[1].toInt()
+    else
+        throw IllegalArgumentException("A percentage value must be between 0 and 100: ${args[1]}")
+
+}
+```
+
 ### "try", "catch", and "finally"
 
+```kotlin
+fun readNumber(reader: BufferedReader): Int? {
+    try {
+        val line = reader.readLine()
+        return Integer.parseInt(line)
+    } catch (e: NumberFormatException) {
+        return null
+    } finally {
+        reader.close()
+    }
+}
+```
+
+- Kotlin은 Checked와 Unchecked 예외를 구분하지 않음
+    - Checked 예외를 처리하지 않아도 됨
+- CheckedException임에도 `throws`를 던지지 않음
+    - Java에서는 `throws`를 명시해야 함
+    - Java에서는 불필요한 코드들이 많음 (예외를 계속해서 던지거나, try-catch를 계속해서 사용하는 등)
+
 ### "try" as an expression
+
+```kotlin
+fun readNumber(reader: BufferedReader) {
+  val number = try {
+    Integer.parseInt(reader.readLine())
+  } catch (e: NumberFormatException) {
+    return
+  }
+  println(number)
+}
+```
+
+- `try`를 `if`, `when`과 같이 expression으로 사용 가능
 
 ## 6. Summary
