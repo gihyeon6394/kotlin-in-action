@@ -248,7 +248,7 @@ import our.pack.createRandomRectangle
 
 ````kotlin
 enum class Color {
-    RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET  
+    RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET
 }
 ````
 
@@ -277,7 +277,7 @@ fun printLeader(idol: Idol) =
         Idol.AESPA -> println("Karina")
     }
 ```
- 
+
 - `when` 은 expression이므로 값을 반환할 수 있음
 - Java의 `switch`와 달리 `break`가 필요 없음
 
@@ -412,11 +412,86 @@ fun evalWithLogging(e: Expr): Int = when (e) {
 
 ### The "while" loop
 
+```kotlin
+while (condition) {
+    // ...
+}
+
+do {
+    // ...
+} while (condition)
+```
+
 ### Iterating over numbers: ranges and progressions
+
+```kotlin
+val onToTen = 1..10 // 1부터 10까지의 range
+```
+
+- `..` : range operator
+    - 숫자, char 가능
+- _range_ : `..` 연산자로 생성
+- _progression_ : 특정 범위 안의 모든 숫자를 순회하는 것
+    - `downTo` : 역순
+    - `step` : 증가폭 (음수 가능)
+    - `until` : 마지막 숫자를 포함하지 않음
+        - e.g. `1 until 10` : 1부터 9까지의 progression
+    - e.g. `1..10 step 2` : 1부터 10까지 2씩 증가하는 progression
+
+```kotlin
+fun fizzBuzz(i: Int) = when {
+    i % 15 == 0 -> "FizzBuzz"
+    i % 3 == 0 -> "Fizz"
+    i % 5 == 0 -> "Buzz"
+    else -> "$i"
+}
+
+for (i in 1..100) {
+    println(fizzBuzz(i))
+}
+
+// 100부터 거꾸로 짝수번째만 출력
+for (i in 100 downTo 1 step 2) {
+    print(fizzBuzz(i))
+}
+```
 
 ### Iterating over maps
 
+| Java                        | Kotlin                   |
+|-----------------------------|--------------------------|
+| `binaryReps.put(c, binary)` | `binaryReps[c] = binary` |
+
+```kotlin
+val binaryReps = TreeMap<Char, String>()
+
+for (c in 'A'..'F') {
+    val binary = Integer.toBinaryString(c.code)
+    binaryReps[c] = binary
+}
+
+for ((letter, binary) in binaryReps) {
+    println("$letter = $binary")
+}
+
+
+val list = arrayListOf("10", "11", "1001")
+for ((index, element) in list.withIndex()) {
+    println("$index: $element")
+}
+```
+
 ### Using "in" to check collection and range membership
+
+- `in` 연산자 : collection, range의 멤버십을 확인
+    - `!in` : not in
+- `java.lang.Comparable` 인터페이스를 구현한 모든 클래스에 대해 사용 가능
+
+```kotlin
+fun isLetter(c: Char) = c in 'a'..'z' || c in 'A'..'Z'
+
+fun isNotDigit(c: Char) = c !in '0'..'9'
+```
 
 ## 5. Exception in Kotlin
 
