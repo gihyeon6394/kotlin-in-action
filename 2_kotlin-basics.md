@@ -431,12 +431,15 @@ val onToTen = 1..10 // 1부터 10까지의 range
 - `..` : range operator
     - 숫자, char 가능
 - _range_ : `..` 연산자로 생성
-- _progression_ : 특정 범위 안의 모든 숫자를 순회하는 것
-    - `downTo` : 역순
-    - `step` : 증가폭 (음수 가능)
-    - `until` : 마지막 숫자를 포함하지 않음
-        - e.g. `1 until 10` : 1부터 9까지의 progression
-    - e.g. `1..10 step 2` : 1부터 10까지 2씩 증가하는 progression
+- `downTo` : 역순
+- `step` : 증가폭 (음수 가능)
+- `until` : 마지막 숫자를 포함하지 않음
+    - e.g. `1 until 10` : 1부터 9까지의 progression
+- _progression_ : 숫자의 시퀀스
+    - `first` : 첫 번째 원소
+    - `last` : 마지막 원소
+    - `step` : 증가폭
+    - e.g. `1..10 step 2` : 1, 3, 5, 7, 9
 
 ```kotlin
 fun fizzBuzz(i: Int) = when {
@@ -536,15 +539,31 @@ fun readNumber(reader: BufferedReader): Int? {
 
 ```kotlin
 fun readNumber(reader: BufferedReader) {
-  val number = try {
-    Integer.parseInt(reader.readLine())
-  } catch (e: NumberFormatException) {
-    return
-  }
-  println(number)
+    val number = try {
+        Integer.parseInt(reader.readLine())
+    } catch (e: NumberFormatException) {
+        return
+    }
+    println(number)
 }
 ```
 
 - `try`를 `if`, `when`과 같이 expression으로 사용 가능
 
 ## 6. Summary
+
+- `fun` 키워드 : 함수 선언, `val`과 `var` : 변수 선언
+- String templated으로 문자열 포맷팅
+    - `$`로 변수 참조, `${ <expression> }`로 표현식 사용
+- Value-object class를 간단하게 선언
+    - e.g. `class Person(val name: String)`
+- `if` 는 return 값을 가질 수 있는 표현식
+- `when`은 Java의 `switch` 대체
+    - `when`은 expression이므로 값을 반환할 수 있음
+- smart cast : type check 후 두번째부터는 자동으로 캐스팅
+- `for`, `while`, `do-while` 은 Java와 비슷
+    - `for` 는 컬렉션으로 순회할 때 더 편함 (`in` 연산자)
+- `..` 연산자로 range, `in`, `!in` 연산자로 값이 range 안에 들어가는지 확인
+- exception handling은 Java와 유사
+    - Kotlin은 Java와 달리 Checked와 Unchecked 예외를 구분하지 않고,
+    - function의 반환 타입에 예외를 명시하지 않음
