@@ -7,9 +7,26 @@
 5. working with strings and regular expressions
 6. Summary
 
+> ### This chapter covers
+>
+> - collection, string, regular expression으로 함수 정의
+> - named arguments, default parameter values, infix call 문법
+> - extension functions and properties를 통해 Java 라이브러리 사용
+> - top-level, local function, property 정의
+
 ---
 
 ## 1. Creating collections in Kotlin
+
+```kotlin
+val set = hashSetOf(1, 7, 53)
+val list = arrayListOf(1, 7, 53)
+val map = hashMapOf(1 to "one", 7 to "seven", 53 to "fifty-three")
+
+println(set.javaClass) // class java.util.HashSet (Java의 getClass와 동일)
+```
+
+- Kotlin collection은 Java standard Java collection을 사용
 
 ## 2. Making functions easier to call
 
