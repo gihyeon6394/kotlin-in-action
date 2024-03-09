@@ -6,7 +6,7 @@
 
 1. [Kotlin: what and why](1_kotlin-what-and-why.md)
 2. [Kotlin basics](2_kotlin-basics.md)
-3. Defining and calling functions
+3. [Defining and calling functions](3_defining-and-calling-functions.md)
 4. Classes, objects, and interfaces
 5. Programming with lambdas
 6. The Kotlin type system
