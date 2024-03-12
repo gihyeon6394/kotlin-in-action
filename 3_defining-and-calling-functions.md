@@ -270,11 +270,76 @@ fun main() {
 
 ## 4. Working with collections: varargs, infix calls, and library support
 
+- `varags` : 함수가 임의의 개수의 인자를 받을 수 있도록 함
+- _infix_ : 함수를 중위 호출로 사용 가능
+- _Desturcturing declarations_ : 객체의 속성을 여러 변수에 할당 가능
+
 ### Extending the Java Collections API
+
+- Java의 Collectiion API 확장
+- `last()`, `maxOrNull()` 등의 함수를 사용할 수 있음 (**extension function**)
+
+```kotlin
+
+fun main() {
+    val aespa: List<String> = listOf("Karina", "Giselle", "Winter", "Ningning")
+    println(aespa.last())
+
+    val numbers: Collection<Int> = setOf(1, 2, 3, 4, 5)
+    println(numbers.maxOrNull())
+}
+```
 
 ### Varargs: functions that accept an arbitrary number of arguments
 
+| Java                                                                                   | Kotlin                                                       |
+|----------------------------------------------------------------------------------------|--------------------------------------------------------------|
+| `...`<br/> `public void foo(String... strings) { ... }`<br/>모든 인자가 array에 패킹되어서 전달되어야함 | `varag` 접근제어자<br/> `fun foo(vararg strings: String) { ... }` |
+
+```kotlin
+package kotlin.collections
+
+// ...
+
+public fun <T> listOf(vararg elements: T): List<T> = if (elements.size > 0) elements.asList() else emptyList()
+```
+
+- _spread operator_ : 배열을 인자로 전달할 때 사용
+
+```kotlin
+val list = listOf("args: ", *args)
+```
+
 ### Working with paris: infix calls and destructuring declarations
+
+````
+aespa to "Next Level"
+newJeans to "Attention"
+
+aespa.to("Next Level")
+newJeans.to("Attention")
+````
+
+- `to` 함수는 infix 함수로 정의되어 있음
+- _destructuring declaration_ : 객체의 속성을 여러 변수에 할당
+
+```kotlin
+package kotlin
+
+public infix fun <A, B> A.to(that: B): Pair<A, B> = Pair(this, that)
+
+// ...
+
+fun main() {
+    val (groupName, songName) = "aespa" to "Next Level" // destructuring declaration
+    println("groupName: $groupName, songName: $songName")
+
+    val groupWithLeader = mapOf("aespa" to "Karina", "Red Velvet" to "Irene", "NewJeans" to "Minzi")
+    for ((group, leader) in groupWithLeader) {
+        println("$leader is the leader of $group")
+    }
+}
+```
 
 ## 5. working with strings and regular expressions
 
