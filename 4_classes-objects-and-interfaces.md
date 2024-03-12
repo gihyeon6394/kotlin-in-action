@@ -6,13 +6,141 @@
 4. The "object" keyword: declaring a class and creating an instance, combined
 5. Summary
 
+> ### This chapter covers
+>
+> - 클래스, 인터페이스
+> - Nontrivial constructors, properties¬
+> - Data 클래스
+> - Class delegation
+> - `object` 키워드
+
 ---
 
 ## 1. Defining class hierarchies
 
+- class 계층 구조
+- Kotlin의 visiblity, access modifier
+- `sealed` class
+
 ### Interfaces in Kotlin
 
-### Open, final and abstract modifiers: final by default¬
+| Java                    | Kotlin                    |
+|-------------------------|---------------------------|
+| `interface`             | `interface`               |
+| `implements`, `extends` | `:`                       |
+| `@Override`             | `override` (**required**) |
+
+- Java 8 인터페이스와 비슷
+- abstract method, non-abstract method 모두 정의 가능 (Java 8의 default method)
+- `interface` keyword 로 선언
+
+```kotlin
+interface Clickable {
+    fun click()
+}
+
+class Button : Clickable {
+    override fun click() = println("I was clicked")
+}
+```
+
+````kotlin
+interface Clickable {
+    // default method
+    fun click() {
+        println("Clickable clicked")
+    }
+}
+````
+
+```kotlin
+interface Clickable {
+    fun click() {
+        println("Clickable clicked")
+    }
+
+    fun showOff() = println("I'm clickable!")
+}
+
+class Button : Clickable,
+    Focusable { // compile error : Class 'Button' must override public open fun showOff(): Unit defined in classesObjectsAndInterfaces.Clickable because it inherits multiple interface methods of it
+    override fun click() {
+        println("Button clicked")
+    }
+}
+
+interface Focusable {
+    fun setFocus(b: Boolean) = println("I ${if (b) "got" else "lost"} focus.")
+    fun showOff() = println("I'm focusable!")
+}
+```
+
+```kotlin
+
+interface Clickable {
+    fun click() {
+        println("Clickable clicked")
+    }
+
+    fun showOff() = println("I'm clickable!")
+}
+
+class Button : Clickable, Focusable {
+    override fun click() {
+        println("Button clicked")
+    }
+
+    override fun showOff() {
+        super<Clickable>.showOff()
+        super<Focusable>.showOff()
+    }
+}
+
+interface Focusable {
+    fun setFocus(b: Boolean) = println("I ${if (b) "got" else "lost"} focus.")
+    fun showOff() = println("I'm focusable!")
+}
+
+```
+
+### Open, final and abstract modifiers: final by default
+
+- Java는 모든 클래스의 subclass 생성을 허용
+    - _fragile base class_ : `final` 키워드가 없는 멤버들은 subclass에서 override 가능
+- _fragile base class_ problem : 정확한 override 방법을 제공하지 않으면, 오버라이딩 시 문제 발생 가능성 있음
+- _Effective Java_ 저자 Joshua Bloch : 모든 클래스를 `final`로 선언하라고 권장
+    - 즉, 웬만하면 상속을 금하라
+- 같은 목적으로 Kotlin은 `final` 이 default
+    - `open` 키워드로 상속을 허용
+
+```kotlin
+// open class : 상속을 허용
+open class RichButton : Clickable {
+
+    // final method : override 금지
+    fun disable() {}
+
+    // open method : override 허용
+    open fun animate() {}
+
+    // override method : open (final 추가하면 비허용)
+    override fun click() {}
+}
+```
+
+```kotlin
+// asbtract class : cannot be instantiated
+abstract class Animated {
+    // abstract function : must be overridden in subclasses
+    abstract fun animate()
+
+    // open function
+    open fun stopAnimating() {}
+
+    // This function is final and cannot be overridden in subclasses
+    fun animateTwice() {}
+}
+```
 
 ### Visibility modifiers: public by default
 
