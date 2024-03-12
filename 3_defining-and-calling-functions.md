@@ -150,15 +150,123 @@ fun printAgeOfKarina() {
 
 ## 3. Adding methods to other people’s classes: extension functions and properties
 
+- Java와 Kotlin이 한 프로젝트에 함께 사용 가능
+- _extension function_ : 클래스 밖에서 정의되어 클래스의 멤버처럼 호출 가능
+    - body에서 private, protected 멤버에 접근 불가
+
+![img_7.png](img_7.png)
+
+```kotlin
+package definingAndCallingFunctions
+
+fun String.lastChar(): Char = this.get(this.length - 1) // this 생략 가능
+
+fun main() {
+    println("Kotlin".lastChar()) // n
+}
+```
+
+- `String` : receiver type
+- `"Kotlin"` : receiver object
+
 ### imports and extensions functions
 
-### Calling extension functions fromjava
+- extension function을 사용하려면 import 필요
+- `as` 키워드를 사용하여 이름 충돌 해결 가능
+    - `import definingAndCallingFunctions.lastChar as last` : `last`로 호출
+
+```kotlin
+package definingAndCallingFunctions.innerPack
+
+import definingAndCallingFunctions.lastChar
+
+fun main() {
+    println("Kotlin".lastChar())
+}
+```
+
+### Calling extension functions from java
+
+```java
+public class Tmp {
+
+    public static void main(String[] args) {
+        System.out.println(ExExtensionKt.lastChar("Call Kotlin Extension Function"));
+    }
+}
+```
 
 ### Utility functions as extensions
 
+```kotlin
+fun <T> Collection<T>.joinToString(separator: String = ", ", prefix: String = "", postfix: String = ""): String {
+    val result = StringBuilder(prefix)
+    for ((index, element) in this.withIndex()) {
+        if (index > 0) result.append(separator)
+        result.append(element)
+    }
+    result.append(postfix)
+    return result.toString()
+}
+
+fun Collection<String>.join(separator: String = ", ", prefix: String = "", postfix: String = "") =
+    joinToString(separator, prefix, postfix)
+```
+
+- Gneric을 사용하지 않고, 특정 타입만 지원하도록 할 수 있음
+
 ### No overriding for extension functions
 
+- extension function은 overriding 불가
+
+````kotlin
+open class View {
+
+    open fun show() {
+        println("View.show() is called")
+    }
+}
+
+fun View.outFun() {
+    println("View.kt outFun() is called")
+}
+
+class Button : View() {
+
+    override fun show() {
+        println("Button.show() is called")
+    }
+}
+
+fun Button.outFun() {
+    println("Button.kt outFun() is called")
+}
+
+fun main() {
+    val button: View = Button()
+    button.show() // Button.show() is called
+
+    val view: View = Button()
+    view.outFun() // View.kt outFun() is called
+}
+```` 
+
+- `outFun`은 `View` 클래스에 추가된 것이지만, `Button` 클래스에서 overriding 불가
+
 ### Extension properties
+
+````kotlin
+fun String.lastChar(): Char = this.get(this.length - 1) // extension function
+
+val String.lastChar: Char get() = get(length - 1) // extension property
+
+fun main() {
+    println("Kotlin".lastChar())
+    println("Aespa".lastChar)
+}
+````
+
+- getter 함수를 정의하여 extension property를 만들 수 있음
 
 ## 4. Working with collections: varargs, infix calls, and library support
 
