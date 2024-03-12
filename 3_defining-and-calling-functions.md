@@ -5,7 +5,8 @@
 3. Adding methods to other people’s classes: extension functions and properties
 4. Working with collections: varargs, infix calls, and library support
 5. working with strings and regular expressions
-6. Summary
+6. Making your code tidy: local functions and extensions
+7. Summary
 
 > ### This chapter covers
 >
@@ -418,4 +419,39 @@ println("""C:\Users\yole\kotlin-book\chapter.adoc""") // C:\Users\yole\kotlin-bo
 
 - `trimMargin()` : 문자열의 각 줄에서 매개변수 문자열 앞에를 제거
 
-## 6. Summary
+## 6. Making your code tidy: local functions and extensions
+
+- local function으로 코드 중복 제거
+- 1번만 nesting하여 사용하기를 권고
+
+```kotlin
+class User(val id: Int, val name: String, val addr: String)
+
+fun saveUser(user: User) {
+    if (user.name.isEmpty()) {
+        throw IllegalArgumentException("Can't save user ${user.id}: empty Name")
+    }
+
+    if (user.addr.isEmpty()) {
+        throw IllegalArgumentException("Can't save user ${user.id}: empty Address")
+    }
+
+    // Save user to the database
+}
+
+
+fun saveUserWithLocalFunction(user: User) {
+    fun validate(value: String, fieldName: String) {
+        if (value.isEmpty()) {
+            throw IllegalArgumentException("Can't save user ${user.id}: empty $fieldName")
+        }
+    }
+
+    validate(user.name, "Name")
+    validate(user.addr, "Address")
+
+    // Save user to the database
+}
+```
+
+## 7. Summary
