@@ -455,3 +455,14 @@ fun saveUserWithLocalFunction(user: User) {
 ```
 
 ## 7. Summary
+
+- Kotlin collection은 Java standard Java collection을 사용
+    - 확장해서 사용
+- default parameter value를 사용해 오버로딩 줄임
+    - named arguments를 사용하여 가독성 향상
+- extension function(property) : class 밖의 file 자체에 추가
+- infix function으로 operator-like한 메서드 선언 가능
+- Kotlin은 String 타입을 다루는 여러 편리한 함수를 제공
+- Tirple-qutoed string을 사용하면 이스케이핑 처리 필요 없음
+- local function을 사용하여 코드 중복 제거
+    - 1번만 nesting하여 사용하기를 권고
