@@ -343,10 +343,79 @@ fun main() {
 
 ## 5. working with strings and regular expressions
 
+- Kotlin String은 Java String과 동일
+
 ### Splitting strings
 
-## Regular expressions and triple-quoted strings
+```java
+public class FromJava {
+
+    public static void main(String[] args) {
+        String[] arr = "12.345-6.A".split("."); // 파라미터로 정규표현식을 받음
+        for (String s : arr) {
+            System.out.println(s); // empty string
+        }
+    }
+}
+```
+
+### Regular expressions and triple-quoted strings
+
+```kotlin
+fun main() {
+    println("12.345-6.A".split("\\.|-".toRegex())) // [12, 345, 6, A]
+    println("12.345-6.A".split(".", "-")) // [12, 345, 6, A]
+}
+```
+
+![img_8.png](img_8.png)
+
+```kotlin
+fun main() {
+    parsePath("/Users/yole/kotlin-book/chapter.adoc")
+}
+
+fun parsePath(path: String) {
+    val directory = path.substringBeforeLast("/")
+    val fullName = path.substringAfterLast("/")
+
+    val fileName = fullName.substringBeforeLast(".")
+    val extension = fullName.substringAfterLast(".")
+
+    println("Dir: $directory, name: $fileName, ext: $extension")
+}
+
+
+fun parsePathRegex(path: String) {
+    val regex = """(.+)/(.+)\.(.+)""".toRegex()
+    val matchResult = regex.matchEntire(path)
+
+    if (matchResult != null) {
+        val (directory, fileName, extension) = matchResult.destructured
+        println("Dir: $directory, name: $fileName, ext: $extension")
+    }
+}
+```
+
+- _triple-quoted string_ : 문자열 안에 escape 문자를 사용하지 않고 여러 줄을 포함할 수 있음
+    - 즉 `\\.` 대신 `\.`로 사용 가능
 
 ### Multiline triple-quoted strings
+
+- 개행 문자를 넣을 수 있음
+
+```kotlin
+val logoKotling = """| //
+                        .|//
+                        .|/ \"""
+
+println(logoKotling.trimMargin("."))
+
+println("""${'$'}99.9""") // $99.9
+println("""C:\Users\yole\kotlin-book\chapter.adoc""") // C:\Users\yole\kotlin-book\chapter.adoc
+
+```
+
+- `trimMargin()` : 문자열의 각 줄에서 매개변수 문자열 앞에를 제거
 
 ## 6. Summary
