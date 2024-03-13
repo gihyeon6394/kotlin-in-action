@@ -144,9 +144,152 @@ abstract class Animated {
 
 ### Visibility modifiers: public by default
 
+| Java                        | Kotlin             |
+|-----------------------------|--------------------|
+| defualt : `package-private` | defualt : `public` |
+
+- Visibility modifier : control access `public`, `internal`, `protected`, `private`
+- defualt : `public`
+- `internal` : module 내부에서만 접근 가능
+- `private` 을 top-level 로 선언 가능 (class, function, property, etc.)
+    - top-level `private` 은 해당 file 내에서만 접근 가능
+- `protected` : class 내부나 subclass에서만 접근 가능 (Java와 다름)
+
+```kotlin
+internal open class TalkativeButton : Focusable {
+    private fun yell() = println("Hey!")
+    protected fun whisper() = println("Let's talk!")
+}
+
+
+fun TalkativeButton.giveSpeech() { // compile error : fun이 internal이거나, class가 public이어야 함
+    yell() // compile error : private function
+    whisper() // compile error : protected function
+}
+```
+
+> #### Kotilin's visibility modifiers and java
+>
+> - `private` class는 컴파일 시 `package-private`로 변경
+> - `internal` class는 컴파일 시 `public`으로 변경
+> - 따라서 Java에서는 `internal` class에 접근 가능
+> - 그러나, 복잡해지고, 충돌이 일어날 수 있으니 하지말 것
+
 ### Inner and nested classes: nested by default
 
+![img_9.png](img_9.png)
+
+- Kotlin은 outer class 인스턴스에 기본적으로 접근 불가능
+
+```kotlin
+import java.io.Serializable
+
+interface State : Serializable
+
+interface View {
+    fun getCurrentState(): State
+    fun restoreState(state: State) {}
+}
+``` 
+
+```java
+
+public class Button implements View {
+
+    @Override
+    public State getCurrentState() {
+        return new ButtonState();
+    }
+
+    @Override
+    public void restoreState(@NotNull State state) {
+        // ...
+    }
+
+    public class ButtonState implements State {
+        // ...
+    }
+
+
+    public static void main(String[] args) throws IOException {
+        State buttonState = new ButtonJava().getCurrentState();
+
+        byte[] serializedButtonState;
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+                oos.writeObject(buttonState); // Error: java.io.NotSerializableException !
+                baos.toByteArray();
+            }
+        }
+    }
+}
+```
+
+- Java의 **문제점** `ButtonState` 타입의 인스턴스를 직렬화할때 `java.io.NotSerializableException` 발생
+    - 원인 : `ButtonState`는 `Button`의 인스턴스에 대한 참조를 가지고 있음
+    - 해결방법 : `ButtonState`를 `static`으로 선언해서 외부 클래스에 대한 암묵적 참조를 제거
+
+```kotlin
+class ButtonKt : View {
+    override fun getCurrentState(): State = ButtonState()
+    override fun restoreState(state: State) {
+        // ...
+    }
+
+    // static nested class
+    class ButtonState : State {
+        // ...
+    }
+}
+```
+
+- `inner` 키워드를 사용하면 외부에 참조하는 Java 처럼 동작
+- `inner` 키워드를 사용하지 않으면 `static` 처럼 동작
+
+````kotlin
+class Outer {
+    inner class Inner {
+        fun getOuterReference(): Outer = this@Outer
+    }
+}
+````
+
 ### Sealed classes: defining restricted class hierarchies
+
+```kotlin
+interface Expr
+class Num(val value: Int) : Expr
+class Sum(val left: Expr, val right: Expr) : Expr
+
+fun eval(e: Expr): Int =
+    when (e) {
+        is Num -> e.value
+        is Sum -> eval(e.right) + eval(e.left)
+        else -> // else 로 default case를 처리해야 함 (compile check)
+            throw IllegalArgumentException("Unknown expression")
+    }
+````
+
+- `sealed` class : class 계층 구조를 제한
+    - `open`
+
+![img_10.png](img_10.png)
+
+```kotlin
+sealed class Expr {
+    class Num(val value: Int) : Expr()
+    class Sum(val left: Expr, val right: Expr) : Expr()
+}
+
+fun eval(e: Expr): Int =
+    when (e) {
+        is Expr.Num -> e.value
+        is Expr.Sum -> eval(e.right) + eval(e.left) // else 불필요
+    }
+```
+
+- `sealed` class는 자신의 nested class만 상속 가능
+    - `sealed` class에 클래스가 추가되면, 컴파일러는 모든 하위 클래스를 검사해서 `when` 식이 모든 경우를 다루는지 확인 (compile error)
 
 ## 2. Declaring a class with nontrivial constructors or properties
 
