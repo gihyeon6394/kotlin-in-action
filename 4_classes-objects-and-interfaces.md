@@ -293,17 +293,199 @@ fun eval(e: Expr): Int =
 
 ## 2. Declaring a class with nontrivial constructors or properties
 
+- _primary constructor_ : 클래스 선언과 함께 정의 (class body 바깥에)
+- _secondary constructor_ : 클래스 내부에 정의
+- _initializer block_ : 초기화 블록
+
 ### Initializing classes: primary constructor and initializer blocks
+
+```kotlin
+class User(val nickname: String)
+
+// primary constructor를 풀어서 표현 (위와 동일)
+class User constructor(_nickname: String) {
+    val nickname: String
+
+    // initializer block
+    init {
+        nickname = _nickname
+    }
+}
+
+class User(_nickname: String) {
+    val nickname = _nickname
+}
+
+class User(val nickname: String)
+```
+
+- `{}` 없음
+- `()` : _primary constructor_ (`(val nickname: String)`)
+- `constructor` 키워드 : priamry (secondary) constructor를 정의할 때 사용
+- `init` 키워드 : _initializer block_ 을 정의
+    - class가 생성될 때 primary constructor가 먼저 실행되고, 그 다음에 initializer block이 실행됨
+-
+    * 만일 모든 파라미터가 default value가 있으면, 컴파일러는 파라미터가 없는 생성자를 자도으로 생성
+
+```kotlin
+open class User(val nickname: String) {
+    // ...
+}
+class TwitterUser(nickname: String) : User(nickname) {
+    // ...
+}
+```
+
+- sub-class는 super-class의 생성자 파라미터를 명시적으로 호출해야 함
+
+```kotlin
+open class Button
+
+class RadioButton : Button()
+```
+
+- 생성자가 없으면, 파라미터가 없는 생성자가 default constructor로 생성됨
+- interface는 생성자가 없으므로 sub-class에서 super-class 생성자를 호출할 필요가 없음
+
+```kotlin
+class Secretive private constructor() {}
+```
+
+- `private` 으로 인스턴스화 금지
+    - single tone을 위한거면 Kotlin top-level 클래스를 사용하는 것이 좋음
 
 ### Secondary constructors: initializing the superclass in different ways
 
+- Kotlin은 default parameter value를 지원 -> 생성자 오버로딩을 줄일 수 있음
+- Kotlin에서 생성자 오버로딩이 필요한 경우 : 서로 다른 방법으로 클래스를 초기화하는 방법을 제공해야하는 sub-class를 만들 때
+
+![img_11.png](img_11.png)
+
+```kotlin
+open class View {
+    constructor(ctx: Context) {
+        // some code
+    }
+    constructor(ctx: Context, attr: AttributeSet) {
+        // some code
+    }
+}
+class MyButton : View {
+    constructor(ctx: Context)
+            : super(ctx) {
+        // ...
+    }
+    constructor(ctx: Context, attr: AttributeSet)
+            : super(ctx, attr) {
+        // ...
+    }
+}
+```
+
+![img_12.png](img_12.png)
+
+```kotlin
+class MyButton : View {
+    constructor(ctx: Context)
+            : this(ctx, MY_STYLE) {
+        // ...
+    }
+    constructor(ctx: Context, attr: AttributeSet)
+            : super(ctx, attr) {
+        // ...
+    }
+}
+```
+
 ### Implementing properties declared in interfaces
+
+```kotlin
+interface User {
+    val nickname: String
+}
+
+// primary constructor
+class PrivateUser(override val nickname: String) : UserInf
+
+// custom getter
+class SubscribingUser(val email: String) : UserInf {
+    override val nickname: String
+        get() = email.substringBefore('@')
+}
+
+// property initializer
+class FacebookUser(val accountId: Int) : UserInf {
+    override val nickname = getFacebookName(accountId)
+}
+```
+
+- `User` 구현체는 `nickname` property를 제공해야 함
+- `PrivateUser` : primary constructor를 통해 property를 제공 (`override` 키워드)
+- `SubscribingUser` : custom getter를 통해 property를 제공
+    - value를 저장하기 위한 backing field 없이 **getter() 호출마다** 값을 계산, 리턴
+- `FacebookUser` : property initializer를 통해 property를 제공
+    - property를 초기화하는 코드를 property 선언에 직접 넣음
+
+````kotlin
+interface User {
+    val email: String // abstract property
+    val nickname: String
+        get() = email.substringBefore('@') // custom getter (default implementation)
+}
+````
 
 ### Accessing a backing field from a getter or setter
 
+- backing field : property의 값을 저장하는 field
+- 두 종류의 property
+    - 종류 1. value를 저장하는 property
+    - 종류 2. custome accesor 를 통해서 매번 호출마다 값을 계산하는 property
+- 종류 2가지를 합쳐서 매번 계산하여 값을 저장하는 property를 만들 수 있음
+
+```kotlin
+
+class User(val name: String) {
+    var address: String = "unspecified"
+        set(value: String) {
+            println(
+                """
+                Address was changed for $name:
+                "$field" -> "$value".""".trimIndent()
+            )
+            field = value // update backing field
+        }
+}
+
+fun main() {
+    User("Alice").address = "Elsenheimerstrasse 47, 80687 Muenchen" // Address was changed for Alice:
+    // "unspecified" -> "Elsenheimerstrasse 47, 80687 Muenchen".
+
+}
+```
+
 ### Changing accessor visibility
 
+```kotlin
+class LengthCounter {
+    var counter: Int = 0
+        private set // the setter is private and has no backing field
+
+    fun addWord(word: String) {
+        counter += word.length
+    }
+}
+
+fun main() {
+    val lengthCounter = LengthCounter()
+    lengthCounter.addWord("Hi!")
+    println(lengthCounter.counter) // 3
+}
+```
+
 ## 3. Compiler-generated methods: data classes and class delegation
+
+- `equals`, `hashCode`, `toString` 등의 메서드들이 중복으로 오버라이딩 되어있음
+- kotlin compiler는 뒤에서 자동으로 생성해줌 (코드 작성 X)
 
 ### Universal object methods
 
