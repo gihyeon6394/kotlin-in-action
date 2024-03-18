@@ -602,12 +602,179 @@ class CountingSet<T>(
 
 ## 4. The "object" keyword: declaring a class and creating an instance, combined
 
+- `object` keyword : 클래스 선언과 인스턴스 생성을 동시에 수행
+- _object declaration_ : singleton을 쉽게 만들 수 있음
+- _Companion object_ : factory method와 static member를 제공
+- _Object expression_ : Java 익명 내부 클래스 대체
+
 ### Object declarations: singletons made easy
+
+- _class declaration_ + _single instance_
+- property, method, initializer block, etc. 모두 포함 가능
+    - 생성자만 불가능
+
+```kotlin
+object Payroll {
+    val allEmployees = arrayListOf<Person>()
+    fun calculateSalary() {
+        for (person in allEmployees) {
+            // ...
+        }
+    }
+}
+```
+
+- 상속 가능
+
+```kotlin
+object CaseInsensitiveFileComparator : Comparator<File> {
+    override fun compare(file1: File, file2: File): Int {
+        return file1.path.compareTo(
+            file2.path,
+            ignoreCase = true
+        )
+    }
+}
+```
+
+- class 안에 Object declaration
+- class 마다 Object instance 생성되지 않음
+
+```kotlin
+data class Person(val name: String) {
+    object NameComparator : Comparator<Person> {
+        override fun compare(p1: Person, p2: Person): Int = p1.name.compareTo(p2.name)
+    }
+}
+```
 
 ### Companion objects: a place for factory methods and static members
 
+| Java          | Kotlin                                   |
+|---------------|------------------------------------------|
+| static method | package-level function, companion object |
+
+- kotlin class는 static member를 가질 수 없음
+- factory method : class 인스턴스 없이 메서드 실행이 가능해야하고, class 내부에 접근 가능해야할 때 사용
+
+![img_13.png](img_13.png)
+
+```kotlin
+class A {
+    companion object {
+        fun bar() {
+            println("Companion object called")
+        }
+    }
+}
+```
+
+```kotlin
+
+class UserFacebook1 {
+    val nickname: String
+
+    constructor(email: String) {
+        nickname = email.substringBefore('@')
+    }
+
+    constructor(facebookAccountId: Int) {
+        nickname = getFacebookName(facebookAccountId)
+    }
+}
+
+class UserFacebook2 private constructor(val nickname: String) {
+    companion object {
+        // factory method 1
+        fun newSubscribingUser(email: String) = UserFacebook2(email.substringBefore('@'))
+
+        // factory method 2
+        fun newFacebookUser(accountId: Int) = UserFacebook2(getFacebookName(accountId))
+    }
+}
+```
+
 ### Companion objects as regular objects
 
+```kotlin
+class Person(val name: String) {
+    // named companion object
+    companion object Loader {
+        fun fromJSON(jsonText: String): Person {
+            // ...
+        }
+    }
+}
+```
+
+#### IMPLEMENTING INTERFACES IN COMPANION OBJECTS
+
+```kotlin
+interface JSONFactory<T> {
+    fun fromJSON(jsonText: String): T
+}
+
+class Person(val name: String) {
+
+    // companion object가 JSONFactory 인터페이스를 구현
+    companion object : JSONFactory<Person> {
+        override fun fromJSON(jsonText: String): Person {
+            // ...
+        }
+    }
+}
+```
+
+- `@JvmStatic` annotation : Java에서 companion object의 method를 static method로 사용
+
+#### COMPANION-OBJECT EXTENSIONS
+
+```kotlin
+// buisness logic
+class Person(val firstName: String, val lastName: String) {
+    // empty companion object
+    companion object
+}
+
+// extension function
+fun Person.Companion.fromJSON(json: String): Person {
+// ...
+}
+```
+
 ### Object expressions: anonymous inner classes rephrased
+
+- _anonymous object_ : Java의 _anonymous inner class_ 를 대체
+- Java와 다르게, 2개 이상의 인터페이스를 구현하거나 0개의 인터페이스를 구현 가능
+- **싱글톤 아님**
+- 여러개의 메서드를 오버라이딩 해야할 때 유용
+
+```kotlin
+window.addMouseListener(
+    // declare anonymous object
+    object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+            // ...
+        }
+
+        override fun mouseEntered(e: MouseEvent) {
+            // ...
+        }
+    }
+)
+```
+
+- Java와 다르게, `final` 변수 외에도 접근, 수정 가능
+
+```kotlin
+fun countClicks(window: Window) {
+    var clickCount = 0
+    window.addMouseListener(object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+            clickCount++ // access to the outer scope
+        }
+    })
+}
+```
 
 ## 5. Summary
