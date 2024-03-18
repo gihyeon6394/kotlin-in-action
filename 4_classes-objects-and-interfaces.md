@@ -778,3 +778,23 @@ fun countClicks(window: Window) {
 ```
 
 ## 5. Summary
+
+- Kotlin의 인터페이스는 Java 8 default 메서드를 지원, property도 정의 가능
+- default : `final` (상속 금지), `public` (접근 가능)
+- `open` : non-`final` (상속 허용)
+- `internal` : module 내부에서만 접근 가능
+- nested class는 default로 inner class가 아님
+    - `inner` 키워드를 사용하면 외부에 참조하는 Java 처럼 동작
+- `sealed` class : class 계층 구조를 제한
+- initializer block : 초기화 블록
+    - secondary constructor로 생성자 오버로딩
+- `field` : backing field
+- `data` class : `equals`, `hashCode`, `toString` 등의 메서드를 자동으로 생성해줌
+- class delegation : `by` 키워드로 코드 중복 제거
+- object declaration : 코틀린에서 싱글톤을 만드는 방법
+- companion object : factory method와 static member를 제공
+- companion object는 인터페이스를 구현하고, extension function, property를 가질 수 있음
+- object expression : Java의 _anonymous inner class_ 를 대체
+    - 여러개의 메서드를 오버라이딩 해야할 때 유용
+    - `final` 변수 외에도 접근, 수정 가능
+    - 여러 인터페이스 구현 가능
