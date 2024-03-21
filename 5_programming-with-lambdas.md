@@ -157,13 +157,96 @@ println(aliceAgeFunc())
 
 ## 2. Functional APIs for collections
 
+- collection을 다루기 위한 Kotlin standard library의 함수들
+
 ### Essentials: filter and map
+
+- `filter` : collection의 element를 걸러내는 함수
+- `map` : collection의 element를 변환하는 함수
+    - 기존 collection을 변경하지 않고, 새로운 collection을 반환
+
+```kotlin
+val list = listOf(1, 2, 3, 4)
+
+println(list.filter { it % 2 == 0 }) // [2, 4], return a new list
+println(list.map { it * it }) // [1, 4, 9, 16], return a new list
+
+val idols = listOf(Idol("Karina", 23), Idol("Giselle", 24), Idol("Winter", 22), Idol("Ningning", 20))
+println(idols.filter { it.age > 20 }.map { it.name }) // 20살 이상인 아이돌의 이름만 출력
+```
 
 ### "all", "any", "count", and "find": applying a predicate to a collection
 
+```kotlin
+val isAdult = { p: Idol -> p.age > 20 }
+
+println(idols.all(isAdult)) // false
+println(idols.any(isAdult)) // true
+println(idols.count(isAdult)) // 3
+```
+
+#### `count` vs `size`
+
+- `count` : predicate를 만족하는 element의 개수를 반환
+- `size` : size를 알아내기위해 임시 collection을 만들어서 size를 반환
+
+```kotlin
+println(idols.filter(isAdult).size) // 3 (create a new list and count the size)
+println(idols.count(isAdult)) // 3 (count the number of elements that satisfy the predicate)
+````
+
+---
+
+```kotlin
+println(idols.find { it.name == "Karina" }) // Idol(name=Karina, age=23)
+println(idols.find { it.age > 20 }) // first element that satisfy the predicate
+```
+
 ### groupBy: converting a list to a map of groups
 
+```kotlin
+val idols2 = listOf(
+    Idol("Karina", 23), Idol("Giselle", 23),
+    Idol("Minzi", 22), Idol("Alice", 23),
+    Idol("Winter", 22)
+)
+
+println(idols2.groupBy { it.age }) // Map<Int, List<Idol>>
+```
+
 ### flatMap and flatten: processing elements in nested collections
+
+```kotlin
+val memberAespa = listOf(
+    Member("Karina", 23), Member("Giselle", 23),
+    Member("Winter", 22), Member("Ningning", 20)
+)
+
+val memberRedVelvet = listOf(
+    Member("Irene", 30), Member("Seulgi", 28),
+    Member("Wendy", 27), Member("Joy", 25),
+    Member("Yeri", 23)
+)
+
+val groupIdols = listOf(
+    GroupIdol("aespa", memberAespa),
+    GroupIdol("Red Velvet", memberRedVelvet)
+)
+
+println(groupIdols.flatMap { it.members }
+    .map { it.name }) // [Karina, Giselle, Winter, Ningning, Irene, Seulgi, Wendy, Joy, Yeri]
+
+val strings = listOf("abc", "def")
+println(strings.flatMap { it.toList() }) // [a, b, c, d, e, f]
+
+val list2 = listOf(listOf(1, 2, 3), listOf(4, 5, 6))
+println(list2.flatten()) // [1, 2, 3, 4, 5, 6]
+```
+
+- `flatMap` = _transform_ -> _flatten_
+    - _transform_ : 각 element를 주어진 함수를 통해 변환
+    - _flatten_ : 변환된 결과를 하나의 list로 합침
+- `flatten` : nested collection을 하나의 collection으로 합침
 
 ## 3. Lazy collection operations: sequences
 
