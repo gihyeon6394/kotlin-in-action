@@ -250,9 +250,70 @@ println(list2.flatten()) // [1, 2, 3, 4, 5, 6]
 
 ## 3. Lazy collection operations: sequences
 
+- `filter()` : _eagerly_
+    - 각 step 마다의 결과를 임시 list에 저장
+- _Sequences_ : _lazily_
+    - 각 step 마다의 결과를 저장하지 않고, 다음 step으로 넘어감
+    - 임시 저장 객체 없음
+    - 주의 : element가 많을 떄만 사용
+    - Java Stream API
+
+```kotlin
+// eager
+idols.map(Idol::name) // return a new list
+    .filter { it.startsWith("K") } // return a new list
+    .forEach(::println) // Karina
+
+// lazy
+idols.asSequence() // convert the list to a sequence
+    .map(Idol::name)
+    .filter { it.startsWith("K") }
+    .forEach(::println) // Karina
+```
+
+- `asSequence()` : list를 sequence로 변환
+
 ### Executing sequence operations: intermediate and terminal operations
 
+![img_16.png](img_16.png)
+
+- _intermediate operation_ : sequence를 반환
+- _terminal operation_ : sequence를 실행하고 결과 반환
+
+```kotlin
+listOf(1, 2, 3, 4).asSequence()
+    .map { print("map($it) "); it * it }
+    .filter { print("filter($it) "); it % 2 == 0 }
+    .toList() // terminal operation : 실행
+```
+
+![img_17.png](img_17.png)
+
+```kotlin
+idols.map(Idol::name) // map first
+    .filter { it.startsWith("K") }
+    .forEach(::println)
+
+// lazy하게 실행하면 map 연산 수가 줄어듦
+idols.asSequence()
+    .filter { it.name.startsWith("K") }
+    .map(Idol::name)
+    .forEach(::println)
+```
+
 ### Creating sequences
+
+```kotlin
+val naturalNumbers = generateSequence(0) { it + 1 }
+val numbersTo100 = naturalNumbers.takeWhile { it <= 100 }
+val sum = numbersTo100.sum() // sum() is a terminal operation
+
+fun File.isInsideHiddenDirectory() =
+    generateSequence(this) { it.parentFile }.any { it.isHidden }
+
+val file = File("/Users/svtk/.HiddenDir/a.txt")
+println(file.isInsideHiddenDirectory())
+```
 
 ## 4. Using Java functional interfaces
 

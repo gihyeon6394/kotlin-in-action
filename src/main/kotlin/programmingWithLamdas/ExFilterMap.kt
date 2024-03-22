@@ -1,5 +1,7 @@
 package programmingWithLamdas
 
+import java.io.File
+
 fun main() {
     val list = listOf(1, 2, 3, 4)
     println(list.filter { it % 2 == 0 }) // [2, 4], return a new list
@@ -53,6 +55,31 @@ fun main() {
     // flatten
     val list2 = listOf(listOf(1, 2, 3), listOf(4, 5, 6))
     println(list2.flatten()) // [1, 2, 3, 4, 5, 6]
+
+    idols.map(Idol::name).filter { it.startsWith("K") }.forEach(::println) // Karina
+
+    idols.asSequence().map(Idol::name).filter { it.startsWith("K") }.forEach(::println) // Karina
+
+    listOf(1, 2, 3, 4).asSequence()
+        .map { print("map($it) "); it * it }
+        .filter { print("filter($it) "); it % 2 == 0 }
+        .toList() // terminal operation : 실행
+
+
+    idols.map(Idol::name) // map first
+        .filter { it.startsWith("K") }
+        .forEach(::println)
+
+    idols.asSequence()
+        .filter { it.name.startsWith("K") }
+        .map(Idol::name)
+        .forEach(::println)
+
+    // create sequence
+    val naturalNumbers = generateSequence(0) { it + 1 }
+    val numbersTo100 = naturalNumbers.takeWhile { it <= 100 }
+    val sum = numbersTo100.sum() // sum() is a terminal operation
+
 }
 
 data class Idol(val name: String, val age: Int)
@@ -60,3 +87,6 @@ data class Idol(val name: String, val age: Int)
 data class Member(val name: String, val age: Int)
 
 data class GroupIdol(val name: String, val members: List<Member>)
+
+fun File.isInsideHiddenDirectory() =
+    generateSequence(this) { it.parentFile }.any { it.isHidden }
