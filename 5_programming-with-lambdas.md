@@ -317,9 +317,102 @@ println(file.isInsideHiddenDirectory())
 
 ## 4. Using Java functional interfaces
 
+- Java functional interface를 사용할 수 있음
+- _functional interface_ : 하나의 abstract method를 가지는 interface
+
+```java
+// functional interface
+public interface OnClickListener {
+    void onClick(View view);
+}
+
+public class Button {
+}
+
+```
+
+```kotlin
+button.setOnClickListener { view -> ... }
+```
+
 ### Passing a lamda as a parameter to a Java method
 
+- functional interface를 파라미터로 받는 모든 Java method에 lamda를 전달 가능
+- Kotlin 1.0 까지는 모든 람다표현식은 익명 클래스로 컴파일됨 (인라인 람다 제외)
+    - Java 8을 지원하기 시작한 뒤 컴파일러는 람다 표현식마다 .class 파일을 생성하지 않음
+    - lamda에서 variable을 사용하면, 매 호출마다 새로운 인스턴스를 생성함
+
+```kotlin
+postponeComputation(1000) { println(42) }
+postponeComputation(1000) { println(42) } // 기존의 익명 인스턴스를 재사용
+
+// anonymous class
+postponeComputation(1000, object : Runnable {
+    override fun run() {
+        println(42)
+    }
+})
+```
+
+기존의 익명 인스턴스 재사용
+
+```kotlin
+// handleComputation이 호출될 때마다 새로운 Runnable 인스턴스 생성
+fun handleComputation(id: Int) {
+    postponeComputation(1000) { println(id) } // variable 사용
+}
+```
+
+컴파일러가 한 행동
+
+````
+class HandleComputation$1(val id: String) : Runnable {
+    override fun run() {
+        println(id)
+    }
+}
+
+fun handleComputation(id: String) {
+    postponeComputation(1000, HandleComputation$1(id))
+}
+````
+
 ### SAM constructors: explicit conversion of lamdas to functional interfaces
+
+```java
+public interface OnClickListener {
+    /**
+     * Called when a view has been clicked.
+     *
+     * @param v The view that was clicked.
+     */
+    void onClick(View v);
+}
+```
+
+- S(ingle) A(bstract) M(ethod) : 하나의 abstract method
+- _SAM constructors_ : lamda를 functional interface로 변환하는 방법
+- 컴파일러가 자동 변환을 지원하지 않을 때 사용
+- 람다 인자 하나만 받음 : functional interface의 body로 사용
+
+```kotlin
+fun createAllDoneRunnable(): Runnable {
+    return Runnable { println("All done!") } // SAM Constructor로 Runnable 생성
+}
+
+val listener = OnClickListener { view ->
+    val text = when (view.id) {
+        R.id.button1 -> "First button"
+        R.id.button2 -> "Second button"
+        else -> "Unknown button"
+    }
+    toast(text)
+}
+
+// listener를 button1, button2에 등록
+button1.setOnClickListener(listener)
+button2.setOnClickListener(listener)
+```
 
 ## 5. Lanmdas with receiver: "with" and "apply"
 
