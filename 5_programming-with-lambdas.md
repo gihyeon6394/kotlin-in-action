@@ -490,3 +490,18 @@ fun createViewWithCustomAttr(context: Context) =
     - Java의 Builder pattern과 유사
 
 ## 6. Summary
+
+- lamda : code를 함수의 인자로 전달하는 방법
+- Kotlin은 소괄호 바깥에서 lamda를 작성하여 전달 가능
+    - `it` : default parameter name
+- lamda body에서 lamda를 호출한 function의 변수에 접근 가능 (수정도 가능)
+- `::` : method, constructor, property를 value로 사용
+    - lamda에 전달 가능
+- `filter`, `map`, `all`, `any` 등의 functional style collection API
+- `Sequence` : lazy collection operation
+    - 1개 이상의 operation을 합쳐서 실행 가능
+- Java functional interface 사용 가능
+- lamda with receiver : body에서 receiver를 사용할 수 있음
+    - `with`, `apply`
+- `with` : 한 obejct에 대한 여러 메서드 실행을 묶을 때 유용
+- `apply` : builder style로 object를 초기화할 때 유용
