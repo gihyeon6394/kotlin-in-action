@@ -416,8 +416,77 @@ button2.setOnClickListener(listener)
 
 ## 5. Lanmdas with receiver: "with" and "apply"
 
+```kotlin
+// buildString : StringBuilder를 생성하고, lamda를 실행한 뒤, toString()을 호출하여 결과를 반환
+fun alphabet() = buildString {
+        for (letter in 'A'..'Z') {
+            append(letter)
+        }
+        append("\nNow I know the alphabet!")
+    }
+```
+
+- _lambda with receiver_ : lamda를 호출할 때, receiver를 지정할 수 있음
+
 ### The "with" function
 
+```kotlin
+fun alphabet(): Stirng {
+    val result = StringBuilder()
+    for (letter in 'A'..'Z') {
+        result.append(letter)
+    }
+    result.append("\nNow I know the alphabet!")
+    return result.toString()
+}
+
+fun alphabetBetter(): String {
+    val strBuilder = StringBuilder()
+    return with(strBuilder) {
+        for (letter in 'A'..'Z') {
+            this.append(letter) // this : strBuilder (receiver, this 생략 가능)
+        }
+        append("\nNow I know the alphabet!")
+        toString()
+    }
+}
+
+fun alphabetBest(): String = with(StringBuilder()) {
+    for (letter in 'A'..'Z') {
+        append(letter)
+    }
+    append("\nNow I know the alphabet!")
+    toString() // return
+}
+```
+
+- `with`에 2개 인자 (receiver, lamda)를 전달
+- 첫번째 인자를 lamda의 receiver로 사용
+- lamda body에서 `this`를 사용하면 receiver를 참조 (생략 가능)
+- `this@label` : lamda에서 다른 scope의 변수를 참조할 때 사용
+    - e.g. `this@OuterClass` : OuterClass의 this
+
 ### The "apply" function
+
+- `apply` : `with`와 비슷하지만, receiver object를 반환
+
+```kotlin
+fun alphabetApply(): String = StringBuilder().apply {
+    for (letter in 'A'..'Z') {
+        append(letter)
+    }
+    append("\nNow I know the alphabet!")
+}.toString()
+
+fun createViewWithCustomAttr(context: Context) =
+    TextView(context).apply {
+        text = "Hello"
+        textSize = 20.0
+        setPadding(10, 0, 0, 0)
+    }
+```
+
+- 인스턴스화시 특정 프로퍼티를 초기화하고 싶을 때 유용
+    - Java의 Builder pattern과 유사
 
 ## 6. Summary
