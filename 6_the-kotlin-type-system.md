@@ -107,13 +107,147 @@ person.company!!.address!!.city // bad practice (NPE 발생 시 뭐가 null인�
 
 ### The `let` function
 
+- null인지 체크하고, 변수에 저장하는 것을 하나의 표현식으로 처리
+
+```
+fun sendEmailTo(email: String) { /*...*/ }
+
+if(email != null) sendEmailTo(email)
+
+email?.let { sendEmailTo(it) }
+```
+
 ### Late initialized properties
+
+- Junit `@Before` 에 초기화 로직 삽입
+- non-null property를 생성자에 놓고싶으면 non-null 이니셜라이저 필요
+- late-initialized property는 non-null이지만 초기화를 나중에 할 수 있음 (생성자 밖에서)
+    - `var`로 선언해야함
+    - 생성자 안에서 초기화할 필요 없음
+
+```kotlin
+class MyService {
+    fun performAction(): String = "foo"
+}
+
+// bad
+class MyTest {
+    private var myService: MyService? = null
+
+    @Before
+    fun setUp() {
+        myService = MyService()
+    }
+
+    @Test
+    fun testAction() {
+        assertEquals("foo", myService!!.performAction()) // 접근할 떄마다 !! 사용
+    }
+}
+
+// good
+class MyTest {
+    private lateinit var myService: MyService
+
+    @Before
+    fun setUp() {
+        myService = MyService()
+    }
+
+    @Test
+    fun testAction() {
+        assertEquals("foo", myService.performAction()) // lateinit property는 non-null
+    }
+}
+```
 
 ### Extensions for nullable types
 
+- nullable type에 대한 확장 함수 정의 가능
+- 확장 함수 안에서 `this` 는 nullable type
+    - Java의 `this`는 non-null
+
+```kotlin
+fun String?.isNullOrBlank(): Boolean = this == null || this.isBlank()
+
+fun verifyUserInput(input: String?) {
+    if (input.isNullOrBlank()) { // nullable type에 대한 확장 함수, safe call operator 필요 없음
+        println("Please fill in the required fields")
+    }
+}
+```
+
 ### Nullability of type parameters
 
+```kotlin
+fun <T> printHashCode(t: T) { // T는 nullable (Any?와 동일)
+    println(t?.hashCode())
+}
+
+fun <T : Any> printHashCode(t: T) { // T는 non-null
+    println(t.hashCode())
+}
+```
+
 ### Nullability and Java
+
+![img_22.png](img_22.png)
+
+- Java의 `@Nullable Stirng` 은 Kotlin의 `String?`과 동일
+
+#### PLATFORM TYPES
+
+![img_23.png](img_23.png)
+
+- Java의 null이 될 수 있는 타입을 Kotlin에서 사용할 때, `String`과 `String?` 중 어떤 것을 사용할지 결정해야 함
+
+```java
+public class Person {
+    private final String name;
+
+    public Person(String name) {
+        this.name = name;
+    }
+
+    // return nullable type
+    public String getName() {
+        return name;
+    }
+}
+```
+
+```kotlin
+fun yellAt(person: Person) {
+    println(person.name.toUpperCase() + "!!!") // throw NPE
+}
+
+fun yellAt(person: Person) {
+    println((person.name ?: "Anyone").toUpperCase() + "!!!")
+}
+```
+
+#### INHERITANCE
+
+- Java method를 오버라이딩할 때 파라미터와 리턴 타입이 nullable인지 여부를 고려해야 함
+
+```java
+public class StringProcessor implements Processor<String> {
+    @Override
+    public String process(String value) {
+        return value.toUpperCase();
+    }
+}
+```
+
+```kotlin
+class StringPrinter : Processor<String> {
+    override fun process(value: String): String = value.toUpperCase()
+}
+
+class NullableStringPrinter : Processor<String?> {
+    override fun process(value: String?): String = value?.toUpperCase() ?: ""
+}
+```
 
 ## 2. Primitive and other basic types
 
