@@ -251,6 +251,86 @@ class NullableStringPrinter : Processor<String?> {
 
 ## 2. Primitive and other basic types
 
+- kotlin은 primitive 와 wrapper type을 구분하지 않음
+
+### Primitive types: Int, Boolean, and more
+
+- Java _primitive type_ : 변수에 값을 곧장 저장
+- Java _reference type_ : 변수에 객체의 참조를 저장
+- Java _wrapper type_ : primitive type을 객체로 감싼 것
+- Kotlin은 primitive type과 wrapper type을 구분하지 않음
+- Kotlin은 런타임에 대부분의 wrapper 타입을 Java primitive type으로 컴파일
+    - collection과 같은 제네릭 클래스의 경우만 예외
+
+```kotlin
+val i: Int = 1
+val list: List<Int> = listOf(1, 2, 3)
+```
+
+### Nullable primitive types: Int? Boolean? and more
+
+- Kotlin에서 nullable primitive type은 wrapper type으로 컴파일
+
+```kotlin
+val listOfInts = listOf(1, 2, 3) //Java List<Integer>
+```
+
+### Number conversions
+
+- Kotlin은 더 큰 타입일지라도 자동으로 변환하지 않음
+    - boxed value를 자동으로 변환하다 발생하는 에러 방지
+- 모든 primitive type마다 conversion function을 제공 (Boolean 제외)
+
+```kotlin
+val i = 1
+// val l: Long = i // compile error
+val l: Long = i.toLong() // use conversion function
+```
+
+### `Any`, `Any?`: the root types
+
+- `Any` : Java의 non-nullable type의 supertype
+    - Java의 `Object`에 대응
+- `Any?` : nullable type의 supertype
+
+```kotlin
+val answer: Any = 42 // answer is non-nullable
+```
+
+### The Unit type: Kotlin's 'void'
+
+````
+fun f(): Unit {...} // Unit 생략 가능
+````
+
+- Java의 `void` function에 대응
+
+```kotlin
+interface Processor<T> {
+    fun process(): T
+}
+class NoResultProcessor : Processor<Unit> {
+
+    // 명시적으로 return type을 지정할 필요가 없음
+    override fun process() {
+        // no result
+        // comipler가 return Unit을 추가함
+    }
+}
+
+```
+
+### The Nothing type: "This function never returns"
+
+```kotlin
+fun fail(message: String): Nothing {
+    throw IllegalStateException(message)
+}
+
+val address = company.address ?: fail("No address")
+println(address.city) // compiler가 address가 non-null로 추론함, null이면 fail이기 떄문
+```
+
 ## 3. Collections and arrays
 
 ## 4. Summary
