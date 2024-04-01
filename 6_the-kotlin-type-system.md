@@ -333,4 +333,175 @@ println(address.city) // compiler가 address가 non-null로 추론함, null이�
 
 ## 3. Collections and arrays
 
+### Nullability and collections
+
+```kotlin
+fun readNumbers(reader: BufferedReader): List<Int?> {
+    val result = ArrayList<Int?>()
+    for (line in reader.lineSequence()) {
+        try {
+            val number = line.toInt()
+            result.add(number)
+        } catch (e: NumberFormatException) {
+            result.add(null) // nullable type
+        }
+    }
+    return result // List<Int?>, nullable type
+}
+
+fun addValidNumbers(numbers: List<Int?>) {
+    var sumOfValidNumbers = 0
+    var invalidNumbers = 0
+    for (number in numbers) {
+        if (number != null) {
+            sumOfValidNumbers += number
+        } else {
+            invalidNumbers++
+        }
+    }
+
+    println("Sum of valid numbers: $sumOfValidNumbers")
+    println("Invalid numbers: $invalidNumbers")
+}
+
+fun addValidNumbersGood(numbers: List<Int?>) {
+    val validNumbers = numbers.filterNotNull()
+    val sum = validNumbers.sum()
+    val invalidNumbers = numbers.size - validNumbers.size
+
+    println("Sum of valid numbers: $sum")
+    println("Invalid numbers: $invalidNumbers")
+}
+```
+
+![img_24.png](img_24.png)
+
+### Read-only and mutable collections
+
+![img_25.png](img_25.png)
+
+- `kotlin.collections.Collection` : read-only collection
+- `kotlin.collections.MutableCollection` : mutable collection
+- rule : 모든 코드에서 read-only collection을 사용하고, 필요할 때만 mutable collection으로 변환
+
+```kotlin
+fun <T> copyElements(source: Collection<T>, target: MutableCollection<T>) {
+    for (item in source) {
+        target.add(item)
+    }
+}
+```
+
+![img_26.png](img_26.png)
+
+- _read-only collections aren't always thread-safe_
+    - 병렬 실행 코드에서
+    - 다른 코드에서 동일한 객체에 참조하는 경우 발생
+
+### Kotlin collections and Java
+
+![img_28.png](img_28.png)
+
+| Collection type | read-only | mutable                           |
+|-----------------|-----------|-----------------------------------|
+| List            | `listOf`  | `mutableListOf`, `arrayListOf`    |
+| Set             | `setOf`   | `mutableSetOf`, `hashSetOf` , ... |
+| Map             | `mapOf`   | `mutableMapOf`, `hashMapOf`, ...  |
+
+```java
+public class CollectionUtils {
+    public static List<String> uppercaseAll(List<String> items) {
+        for (int i = 0; i < items.size(); i++) {
+            items.set(i, items.get(i).toUpperCase());
+        }
+        return items;
+    }
+}
+```
+
+```kotlin
+fun printInUppercase(list: List<String>) {
+    println(CollectionUtils.uppercaseAll(list)) // compiled
+    println(list.first())
+}
+```
+
+### Collections as platform types
+
+- _platform type_ : Java에서 Kotlin으로 가져온 타입
+- nullable, non-nullabe 모두 가능
+
+```java
+interface FileContentProcessor {
+    void processContents(File path, byte[] binaryContents, List<String> textContents);
+}
+
+interface DataParser<T> {
+    void parseData(String input, List<T> output, List<String> errors);
+}
+```
+
+```kotlin
+
+class FileIndexer : FileContentProcessor {
+    /**
+     * textContents는 nullable이지만, element는 non-nullable
+     * textContents는 read-only
+     */
+    override fun processContents(
+        path: File,
+        binaryContents: ByteArray?,
+        textContents: List<String>?
+    ) {
+        // ...
+    }
+}
+
+
+class PersonParser : DataParser<Person> {
+    /**
+     * output은 non-nullable, element는 non-nullable
+     * errors는 non-nullable, element는 nullable
+     */
+    override fun parseData(
+        input: String,
+        output: MutableList<Person>,
+        errors: MutableList<String?>
+    ) {
+        // ...
+    }
+}
+```
+
+### Arrays of objects and primitive types
+
+- `arrayOf()` : 배열 생성
+- `arrayOfNulls()` : null로 초기화된 배열 생성
+- `Array()` : 배열 생성, 초기화 함수를 인자로 받음
+
+```kotlin
+val letters = Array<String>(26) { i -> ('a' + i).toString() }
+
+val strings = listOf("a", "b", "c")
+println("%s/%s/%s".format(*strings.toTypedArray())) // spread operator
+```
+
+- `*` : spread operator
+    - 배열을 함수의 가변 인자로 전달
+
+| Java type | Kotlin type  |
+|-----------|--------------|
+| `int[]`   | `IntArray`   |
+| `long[]`  | `LongArray`  |
+| `short[]` | `ShortArray` |
+| `byte[]`  | `ByteArray`  |
+| ...       | ...          |
+
+```kotlin
+val fiveZeros = IntArray(5)
+val fiveZerosToo = intArrayOf(0, 0, 0, 0, 0)
+
+val squares = IntArray(5) { i -> (i + 1) * (i + 1) }
+```
+
 ## 4. Summary
