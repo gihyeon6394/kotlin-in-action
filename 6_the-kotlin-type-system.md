@@ -505,3 +505,16 @@ val squares = IntArray(5) { i -> (i + 1) * (i + 1) }
 ```
 
 ## 4. Summary
+
+- Kotlin은 compile-time에 NPE를 최대한 방지
+- `?.` : safe call operator, `?:` : elvis operator, `!!` : not-null assertion, `let` : nullable type을 다루는 함수
+- `as?` : 서로 다른 타입을 캐스팅할 떄 유용
+- platform type : Java에서 가져온 타입, nullable, non-nullable 모두 가능
+- `Int` 는 Java `int`로 컴파일됨
+- `Int?` 는 Java `Integer`로 컴파일됨
+- `Any` : Java `Object`에 대응, `Object.Unit` : Java `void`에 대응
+- `Nothing` : 함수가 절대로 반환하지 않음을 나타냄
+- Kotlin은 Java의 컬렉션을 사용하면서, read-only, mutable collection을 구분
+- Java 를 확장할때는 파라미터의 nullable 여부, mutable 여부를 고려해야 함
+- `Array` 는 Java 배열로 컴파일됨
+- `IntArray`, `LongArray`, ... : Java primitive type 배열에 대응
