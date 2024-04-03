@@ -131,6 +131,55 @@ operator fun BigDecimal.inc() = this + BigDecimal.ONE
 
 ## 2. Overloading comparison operators
 
+- comparison operators : `==`, `!=`, `<`, `>`, `<=`, `>=`
+
+### Equality operators: `equals`
+
+- kotlin의 `==`, `!=`는 `equals`를 호출
+
+```kotlin
+class Point(val x: Int, val y: Int) {
+    override fun equals(obj: Any?): Boolean {
+        if (obj === this) return true
+        if (obj !is Point) return false
+        return obj.x == x && obj.y == y
+    }
+}
+
+println(Point(10, 20) == Point(10, 20)) // true
+println(Point(10, 20) != Point(5, 5)) // true
+println(null == Point(1, 2)) // false
+```
+
+- `===` : _identity equals_ operator
+    - reference equality를 확인
+
+### Ordering operators: `compareTo`
+
+- Java에서 Object 비교 (정렬, 크기 등)를 위해선 명시적으로 `compareTo`를 구현, 호출해야함
+- `compareTo`는 `==`, `<`, `>`, `<=`, `>=`를 사용 가능하게 함
+- Kotlin은 `Comparaable` 구현체에 대해 convention을 제공
+    - `compareTo`를 구현하면 `==`, `<`, `>`, `<=`, `>=`를 사용 가능
+
+```kotlin
+class Person(
+    val firstName: String, val lastName: String
+) : Comparable<Person> {
+    override fun compareTo(other: Person): Int {
+        return compareValuesBy(
+            this, other,
+            Person::lastName, Person::firstName
+        )
+    }
+}
+
+fun main() {
+    val person1 = Person("Alice", "Smith")
+    val person2 = Person("Bob", "Johnson")
+    println(person1 < person2) // false
+}
+```
+
 ## 3. Conventions used for collections and ranges
 
 ## 4. Destructuring declarations and component functions

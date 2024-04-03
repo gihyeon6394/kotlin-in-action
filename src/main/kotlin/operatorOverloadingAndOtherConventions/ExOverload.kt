@@ -32,6 +32,10 @@ fun main() {
     var bd = BigDecimal.ZERO
     println(bd++) // 0
     println(++bd) // 2
+
+    val person1 = Person("Alice", "Smith")
+    val person2 = Person("Bob", "Johnson")
+    println(person1 < person2) // false
 }
 
 
@@ -54,3 +58,15 @@ operator fun Double.times(p: Point): Point {
 }
 
 operator fun BigDecimal.inc() = this + BigDecimal.ONE
+
+
+class Person(
+    val firstName: String, val lastName: String
+) : Comparable<Person> {
+    override fun compareTo(other: Person): Int {
+        return compareValuesBy(
+            this, other,
+            Person::lastName, Person::firstName
+        )
+    }
+}
