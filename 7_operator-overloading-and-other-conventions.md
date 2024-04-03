@@ -180,6 +180,9 @@ fun main() {
 }
 ```
 
+- `compareValuesBy` : `compareTo`를 구현하는데 도움을 주는 함수
+    - 여러 field를 순차적으로 비교
+
 ## 3. Conventions used for collections and ranges
 
 ## 4. Destructuring declarations and component functions
