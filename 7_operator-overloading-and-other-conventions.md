@@ -185,6 +185,110 @@ fun main() {
 
 ## 3. Conventions used for collections and ranges
 
+- _index operator_ : `[]`
+- `in` operator : contains, range, iteration
+
+### Accessing elements by index: `get` and `set`
+
+```kotlin
+
+fun main() {
+    val p = Point(10, 20)
+    println(p[1]) // 20
+
+    val mp = MutablePoint(10, 20)
+    mp[1] = 42
+    println(mp) // MutablePoint(x=10, y=42)
+}
+
+operator fun Point.get(index: Int): Int {
+    return when (index) {
+        0 -> x
+        1 -> y
+        else ->
+            throw IndexOutOfBoundsException("Invalid coordinate $index")
+    }
+}
+
+data class MutablePoint(var x: Int, var y: Int) {
+}
+
+operator fun MutablePoint.set(index: Int, value: Int) {
+    return when (index) {
+        0 -> x = value
+        1 -> y = value
+        else -> throw IndexOutOfBoundsException("Invalid coordinate $index")
+    }
+}
+```
+
+### The `in` convention
+
+- `in` operator : contains
+
+```kotlin
+fun main() {
+    val rect = Rectangle(Point(10, 20), Point(50, 50))
+    println(Point(20, 30) in rect) // true
+    println(Point(5, 5) in rect) // false
+}
+
+data class Rectangle(val upperLeft: Point, val lowerRight: Point)
+
+operator fun Rectangle.contains(p: Point): Boolean {
+    return p.x in upperLeft.x until lowerRight.x &&
+            p.y in upperLeft.y until lowerRight.y
+}
+```
+
+### The rangeTo convention
+
+- `..` operator : range, `rangeTo()` 호출
+- e.g. `1..10` : `1`부터 `10`까지의 range
+
+```kotlin
+operator fun <T : Comparable<T>> T.rangeTo(that: T): ClosedRange<T>
+
+fun main() {
+    val now = LocalDate.now()
+    val vacation = now..now.plusDays(10)
+    println(now.plusWeeks(1) in vacation) // true
+
+    (0..9).forEach { print(it) } // 0123456789
+}
+```
+
+### The `iterator` convention for `for` loops
+
+- `for (x in list) { ... }` : `list.iterator()`를 호출
+
+```kotlin
+operator fun CharSequence.iterator(): CharIterator
+
+operator fun ClosedRange<LocalDate>.iterator(): Iterator<LocalDate> =
+  object : Iterator<LocalDate> {
+    var current = start
+    override fun hasNext() =
+      current <= endInclusive
+    override fun next() = current.apply {
+      current = plusDays(1)
+    }
+  }
+
+fun main() {
+    for (c in "abc") {
+        println(c)
+    }
+  
+  val newYear = LocalDate.ofYearDay(2021, 1)
+    val daysOff = newYear.minusDays(1)..newYear.plusDays(1)
+    for (dayOff in daysOff) {
+        println(dayOff) // 2020-12-31, 2021-01-01, 2021-01-02
+    }
+}
+
+```
+
 ## 4. Destructuring declarations and component functions
 
 ## 5. Reusing property accessor logic: delegated properties

@@ -61,7 +61,7 @@ operator fun BigDecimal.inc() = this + BigDecimal.ONE
 
 
 class Person(
-    val firstName: String, val lastName: String
+    val firstName: String, val lastName: String,
 ) : Comparable<Person> {
     override fun compareTo(other: Person): Int {
         return compareValuesBy(
@@ -69,4 +69,22 @@ class Person(
             Person::lastName, Person::firstName
         )
     }
+}
+
+data class MutablePoint(var x: Int, var y: Int) {
+}
+
+operator fun MutablePoint.set(index: Int, value: Int) {
+    return when (index) {
+        0 -> x = value
+        1 -> y = value
+        else -> throw IndexOutOfBoundsException("Invalid coordinate $index")
+    }
+}
+
+data class Rectangle(val upperLeft: Point, val lowerRight: Point)
+
+operator fun Rectangle.contains(p: Point): Boolean {
+    return p.x in upperLeft.x until lowerRight.x &&
+            p.y in upperLeft.y until lowerRight.y
 }
