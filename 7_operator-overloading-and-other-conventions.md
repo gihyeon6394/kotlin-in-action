@@ -266,21 +266,21 @@ fun main() {
 operator fun CharSequence.iterator(): CharIterator
 
 operator fun ClosedRange<LocalDate>.iterator(): Iterator<LocalDate> =
-  object : Iterator<LocalDate> {
-    var current = start
-    override fun hasNext() =
-      current <= endInclusive
-    override fun next() = current.apply {
-      current = plusDays(1)
+    object : Iterator<LocalDate> {
+        var current = start
+        override fun hasNext() =
+            current <= endInclusive
+        override fun next() = current.apply {
+            current = plusDays(1)
+        }
     }
-  }
 
 fun main() {
     for (c in "abc") {
         println(c)
     }
-  
-  val newYear = LocalDate.ofYearDay(2021, 1)
+
+    val newYear = LocalDate.ofYearDay(2021, 1)
     val daysOff = newYear.minusDays(1)..newYear.plusDays(1)
     for (dayOff in daysOff) {
         println(dayOff) // 2020-12-31, 2021-01-01, 2021-01-02
@@ -290,6 +290,52 @@ fun main() {
 ```
 
 ## 4. Destructuring declarations and component functions
+
+![img_29.png](img_29.png)
+
+```kotlin
+class Point(val x: Int, val y: Int) {
+    operator fun component1() = x
+    operator fun component2() = y
+}
+
+val p = Point(10, 20)
+val (x, y) = p
+println(x) // 10
+println(y) // 20
+```
+
+- `componentN` 함수를 정의하면 destructuring 가능
+    - `N` : 1부터 시작하는 index
+    - data class는 컴파일러가 생성
+- 2개 이상의 value를 리턴하고 싶을 떄 유용
+- `Pair`, `Triple` 보다 가독성이 좋음
+    - 리턴하는 객체가 무엇을 의미하는지 명확
+
+```kotlin
+data class NameComponents(val name: String, val extension: String)
+
+fun splitFilename(fullName: String): NameComponents {
+    val result = fullName.split('.', limit = 2)
+    return NameComponents(result[0], result[1])
+}
+
+val (name, ext) = splitFilename("example.kt")
+println(name) // example
+println(ext) // kt
+```
+
+### Destructuring declarations and loops
+
+```kotlin
+fun printEntries(map: Map<String, String>) {
+    for ((key, value) in map) {
+        println("$key -> $value")
+    }
+}
+```
+
+- Kotlin Standard Library는 map의 `iterator` 를 제공하는 extension function을 제공
 
 ## 5. Reusing property accessor logic: delegated properties
 
