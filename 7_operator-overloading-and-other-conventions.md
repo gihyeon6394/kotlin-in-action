@@ -339,5 +339,276 @@ fun printEntries(map: Map<String, String>) {
 
 ## 5. Reusing property accessor logic: delegated properties
 
+- _delegated properties_ : property accessor logic을 재사용하는 방법
+- _delegation_ : 다른 helper object에 property accessor logic을 위임
+    - _delegate_ : helper object
+
+### Delegated properties: the basics
+
+```kotlin
+class Delegate {
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): Type {
+        //...
+    }
+
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: Type) {
+        //...
+    }
+
+}
+
+class Foo {
+    var p: Type by Delegate() // Delegate class에게 p를 위임
+
+    // compiled to
+    private val delegate = Delegate()
+    var p: Type
+        set(value: Type) = delegate.setValue(this, ::p, value)
+        get() = delegate.getValue(this, ::p)
+}
+
+fun main() {
+    val foo = Foo()
+    val x = foo.p // Delegate.getValue 호출
+    foo.p = x // Delegate.setValue 호출
+}
+```
+
+### Using delegated properties: lazy initialization and `by lazy()`
+
+- _Lazy initialization_ : 최초로 접근하느 시점에 초기화
+    - 초기화 작업이 비용이 크거나, 필요한 경우에만 초기화할 때 유용
+
+```kotlin
+class Email { /*...*/ }
+
+class Person(val name: String) {
+    private var _emails: List<Email>? = null
+
+    val emails: List<Email>
+        get() {
+            if (_emails == null) {
+                _emails = loadEmails(this)
+            }
+            return _emails!!
+        }
+}
+
+fun loadEmails(person: Person): List<Email> {
+    println("Load emails for ${person.name}") // email을 DB에서 로드
+    return listOf(/*...*/)
+}
+```
+
+- _backing property_ technique
+    - `_emails` : property의 값을 저장하는 property
+    - `emails` : property accessor
+
+```kotlin
+class Person(val name: String) {
+    val emails by lazy { loadEmails(this) }
+}
+```
+
+### Implementing delegated properties
+
+- `PropertyChangeSupport`
+    - 리스너 목록 관리
+    - `PropertyChangeEvent` 를 리스너들에게 디스패치
+
+```kotlin
+open class PropertyChangeAware {
+    protected val changeSupport = PropertyChangeSupport(this)
+
+    fun addPropertyChangeListener(listener: PropertyChangeListener) {
+        changeSupport.addPropertyChangeListener(listener)
+    }
+
+    fun removePropertyChangeListener(listener: PropertyChangeListener) {
+        changeSupport.removePropertyChangeListener(listener)
+    }
+}
+
+class Person(val name: String, age: Int, salary: Int) : PropertyChangeAware() {
+    var age: Int = age
+        set(newValue) {
+            val oldValue = field
+            field = newValue
+            changeSupport.firePropertyChange("age", oldValue, newValue)
+        }
+
+    var salary: Int = salary
+        set(newValue) {
+            val oldValue = field
+            field = newValue
+            changeSupport.firePropertyChange("salary", oldValue, newValue)
+        }
+}
+
+fun main() {
+    val p = Person("Dmitry", 34, 2000)
+    p.addPropertyChangeListener(
+        PropertyChangeListener { event ->
+            println(
+                "Property ${event.propertyName} changed " +
+                        "from ${event.oldValue} to ${event.newValue}"
+            )
+        }
+    )
+    p.age = 35 // Property age changed from 34 to 35
+    p.salary = 2100 // Property salary changed from 2000 to 2100
+}
+```
+
+```kotlin
+// value를 저장, 자동으로 PropertyChangeSupport에게 변경을 알림
+class ObservableProperty(
+    var propName: String, var propValue: Int, val changeSupport: PropertyChangeSupport,
+) {
+    fun getValue(): Int = propValue
+    fun setValue(newValue: Int) {
+        val oldValue = propValue
+        propValue = newValue
+        changeSupport.firePropertyChange(propName, oldValue, newValue) // 변경을 알림
+    }
+}
+
+class Person(val name: String, age: Int, salary: Int) : PropertyChangeAware() {
+    val _age = ObservableProperty("age", age, changeSupport)
+    var age: Int
+        get() = _age.getValue()
+        set(value) {
+            _age.setValue(value)
+        }
+
+    val _salary = ObservableProperty("salary", salary, changeSupport)
+    var salary: Int
+        get() = _salary.getValue()
+        set(value) {
+            _salary.setValue(value)
+        }
+}
+```
+
+```kotlin
+class ObservableProperty(
+    var propValue: Int, val changeSupport: PropertyChangeSupport,
+) {
+    // Kotlin convention : getValue, setValue
+    operator fun getValue(p: Person, prop: KProperty<*>): Int = propValue
+    operator fun setValue(p: Person, prop: KProperty<*>, newValue: Int) {
+        val oldValue = propValue
+        propValue = newValue
+        changeSupport.firePropertyChange(prop.name, oldValue, newValue)
+    }
+}
+
+class Person(val name: String, age: Int, salary: Int) : PropertyChangeAware() {
+    var age: Int by ObservableProperty(age, changeSupport)
+    var salary: Int by ObservableProperty(salary, changeSupport)
+}
+```
+
+```kotlin
+class Person(
+    val name: String, age: Int, salary: Int,
+) : PropertyChangeAware() {
+    private val observer = { prop: KProperty<*>, oldValue: Int, newValue: Int ->
+        changeSupport.firePropertyChange(prop.name, oldValue, newValue)
+    }
+
+    var age: Int by Delegates.observable(age, observer)
+    var salary: Int by Delegates.observable(salary, observer)
+}
+```
+
+- Kotlin Standard Library : `Delegates.observable`
+    - property의 변경을 감지하고, 변경을 알림
+
+### Delegated property translation rules
+
+```kotlin
+class C {
+    var prop: Type by MyDelegate()
+}
+```
+
+![img_30.png](img_30.png)
+
+```
+// compiled to
+class C {
+    private val prop <delegate> = MyDelegate()
+    var prop: Type
+        get() = <delegate>.getValue(this, <property>)
+        set(value: Type) = <delegate>.setValue(this, <property>, value)
+}
+
+```
+
+- `delegate` : property를 위임하는 객체
+    - 맵, 테이블, DB 등으로 위임 가능
+
+### Storing property values in a map
+
+- _expando objects_ : property를 동적으로 추가하는 객체
+
+```kotlin
+class Person {
+    private val _attributes = hashMapOf<String, String>()
+    fun setAttribute(attrName: String, value: String) {
+        _attributes[attrName] = value
+    }
+
+    val name: String
+        get() = _attributes["name"]!!
+}
+
+fun main() {
+    val p = Person()
+    val data = mapOf("name" to "Dmitry", "company" to "JetBrains")
+    for ((attrName, value) in data) {
+        p.setAttribute(attrName, value)
+    }
+    println(p.name) // Dmitry
+}
+```
+
+```kotlin
+class Person {
+    private val _attributes = hashMapOf<String, String>()
+    fun setAttribute(attrName: String, value: String) {
+        _attributes[attrName] = value
+    }
+    val name: String by _attributes // _attributes에게 name을 위임
+}
+```
+
+- `p.name` -> `_attributes.getValue(p, prop)` -> `_attributes["name"]`
+
+### Delegated properties in frameworks
+
+```kotlin
+// DB Table Users에 대응하는 class
+object Users : IdTable() {
+    val name = varchar("name", length = 50).index()
+    val age = integer("age")
+}
+
+class User(id: EntityID) : Entity(id) {
+    var name: String by Users.name // Users.name에게 name을 위임
+    var age: Int by Users.age // Users.age에게 age를 위임
+}
+
+// 명시적 구현
+object Users : IdTable() {
+    val name: Column<String> = varchar("name", 50).index()
+    val age: Column<Int> = integer("age")
+}
+```
+
+- `Entity` class : DB table의 row에 대응
+- `user.age += 1` -> `user.ageDelegate.setValue(user, User::age, user.age + 1)`
+
 ## 6. Summary
 
