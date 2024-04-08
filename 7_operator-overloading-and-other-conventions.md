@@ -612,3 +612,13 @@ object Users : IdTable() {
 
 ## 6. Summary
 
+- Kotlin은 기본적인 수학연산을 오버로딩하게 해줌
+- Comparision operator는 `equals`, `compareTo`를 오버로딩하게 해줌
+- `get()`, `set()`, `contains()` 를 정의하면, `[]`, `in` operator를 사용 가능
+- rage, iterating을 컨벤션으로 가능
+- Destructring declarations은 n개의 프로퍼티를 하나의 object에 초기화 가능하게 함
+    - data class는 `componentN` 함수를 컴파일러가 생성
+- Delegated property는 property의 제어 (저장, 초기화, 접근, 수정 등)를 다른 객체에 위임 가능
+- lazy standard library function은 lazy initialization을 제공
+- `Delegates.observable`은 property의 변경을 감지하고, 변경을 알림
+- delegated property는 어느 형태의 맵이건 (테이블 등) delegate로 사용 가능
