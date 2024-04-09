@@ -36,6 +36,7 @@ fun main() {
     val person1 = Person("Alice", "Smith")
     val person2 = Person("Bob", "Johnson")
     println(person1 < person2) // false
+
 }
 
 
