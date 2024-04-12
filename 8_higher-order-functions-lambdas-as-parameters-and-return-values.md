@@ -257,6 +257,128 @@ fun main() {
 
 ## 2. Inline functions: removing the overhead of lambdas
 
+- 람다는 익명 클래스로 컴파일됨
+- **람다를 사용할 떄마다 객체를 생성하고 메모리를 할당하는 오버헤드가 발생**
+    - 람다 바디에서 변수를 캡처하면 더 많은 오버헤드 발생 (invocation마다 새로운 객체 생성)
+- `inline` 접근제어다 : 컴파일러가 function call을 생성하지 않고, 호출마다 실제 function 구현 코드를 사용하게 해줌
+
+### How inlining works
+
+```kotlin
+inline fun <T> synchronized(lock: Lock, action: () -> T): T {
+    lock.lock()
+    try {
+        return action()
+    } finally {
+        lock.unlock()
+    }
+}
+
+fun foo(l: Lock) {
+    println("Before sync")
+    synchronized(l) {
+        println("Action")
+    }
+    println("After sync")
+}
+```
+
+![img_31.png](img_31.png)
+
+```kotlin
+class LockOwner(val lock: Lock) {
+    fun runUnderLock(body: () -> Unit) {
+        synchronized(lock, body)
+    }
+}
+
+// bytecode
+class LockOwner(val lock: Lock) {
+    fun __runUnderLock__(body: () -> Unit) {
+        lock.lock()
+        try {
+            body() // body는 inline function이 아니므로 Inline되지 않음
+        } finally {
+            lock.unlock()
+        }
+    }
+}
+```
+
+### Restrictions on inline functions
+
+```kotlin
+inline fun foo(inlined: () -> Unit, noinline notInlined: () -> Unit) {
+    // ...
+}
+```
+
+- 모든 람다가 인라인 될 수 없음
+- 인라인 함수는 파라미터에 제한이 있음
+    - 파라미터를 저장하여 어딘가에 쓴다면, 인라인 될 수 없음 (저장할 오브젝트가 필요하기 때문)
+
+```kotlin
+fun <T, R> Sequence<T>.map(transform: (T) -> R): Sequence<R> {
+    return TransformingSequence(this, transform) // transform을 직접 호추하지 않고, 생성자에 전달
+}
+```
+
+### Deciding when to declare functions as inline
+
+- 일반적은 function call에 대해 JVM은 최적화를 수행
+    - byte code -> machine code 변환 시 최적화 (inlining)
+    - 함수를 호출한 지점을 알수있으므로 stack trace 명확
+- kotlin inlining function의 장점
+    - function call 뿐 아니라 extra class 오브젝트 생성도 없애줌
+    - JVM의 최적화가 보장되지를 않음
+    - 일반적인 람다에서 사용 불가능한 피쳐 지원 (e.g. non-local return)
+- 주의점 : inline 크기를 작게 유지
+    - inline의 부피가 크면, bytecode를 매 호출마다 복사하는 비용이 큼
+
+### Using inlined lamdas for resource management
+
+```java
+// java 7 try-with-resources
+static String readFirstLineFromFile(String path) throws IOException {
+    try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+        return br.readLine();
+    }
+}
+```
+
+```kotlin
+fun <T> Lock.withLock(action: () -> T): T {
+    lock()
+    try {
+        return action()
+    } finally {
+        unlock()
+    }
+}
+```
+
+- resource : 디비 트랜잭션, 파일, 락 등의 자원
+- `withLock` : kotlin standard library에 포함된 inline function
+    - `Lock` 인터페이스 확장
+
+```
+val l: Lock = ...
+l.withLock {
+    // access the resource protected by this lock
+}
+```
+
+```kotlin
+fun readFirstLineFromFile(path: String): String {
+    BufferedReader(FileReader(path)).use { br ->
+        return br.readLine()
+    }
+}
+```
+
+- `use()` : closable reosurce에 대한 확장 함수
+    - inline function
+
 ## 3. Control flow in higher-order functions
 
 ## 4. Summary
