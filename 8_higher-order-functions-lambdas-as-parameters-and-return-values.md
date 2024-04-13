@@ -467,3 +467,9 @@ people.filter(fun(person) = person.age < 30)
 
 ## 4. Summary
 
+- Function type은 function을 참조로하는 변수, 파라미터, 리턴 타입으로 사용 가능
+- Higher-order function은 function type을 인자로 받거나 함수를 반환하는 함수
+- Inline function이 컴파일될 때 lamda byte code는 code안에 직접 삽입됨
+- Higher-order function은 single component의 재사용을 촉진, generic library 작성 시 유용
+- Inline function에서 _non-local returns_ : 람다에서 return을 사용하면, 람다를 호출한 함수에서 return이 발생
+- Anonymous functino에서 `return` : 가장 가까운 `fun` 키워드로부터 return
