@@ -381,5 +381,89 @@ fun readFirstLineFromFile(path: String): String {
 
 ## 3. Control flow in higher-order functions
 
+### Return statements in lamdas: return from the enclosing function
+
+```kotlin
+val people = listOf(Person("Alice", 29), Person("Bob", 31))
+
+fun lookForAlice(people: List<Person>) {
+    for (person in people) {
+        if (person.name == "Alice") {
+            println("Found!")
+            return
+        }
+    }
+    println("Alice is not found")
+}
+
+// higher-order function
+fun lookForAlice(people: List<Person>) {
+    people.forEach {
+        if (it.name == "Alice") {
+            println("Found!")
+            return
+        }
+    }
+    println("Alice is not found")
+}
+```
+
+- _non local return_ : 람다에서 return을 사용하면, 람다를 호출한 함수에서도 return이 발생
+
+### Returning from lamdas: return with a label
+
+![img_32.png](img_32.png)
+
+- `for` loop의 `break`와 비슷한 역할
+- _label_ : return하고 싶은 람다 표현식에 붙여 사용
+
+```kotlin
+fun lookForAlice(people: List<Person>) {
+    people.forEach label@{
+        if (it.name == "Alice") return@label
+    }
+    println("Alice might be somewhere")
+}
+
+// function name을 라벨로 사용
+fun lookForAlice(people: List<Person>) {
+    people.forEach {
+        if (it.name == "Alice") return@forEach
+    }
+    println("Alice might be somewhere")
+}
+
+// this 표현식에 라벨
+println(StringBuilder().apply sb@{
+    listOf(1, 2, 3).apply {
+        this@sb.append(this.toString())
+    }
+})
+```
+
+- `this@sb` : 람다 표현식 안에서 리시버 객체를 참조 (`StringBuilder`)
+
+### Anonymous functions: local returns by default
+
+![img_33.png](img_33.png)
+
+- anonymous function 에서 `return` : 가장 가까운 `fun` 키워드로부터 return
+
+```kotlin
+fun lookForAlice(people: List<Person>) {
+    people.forEach(fun(person) {
+        if (person.name == "Alice") return
+        println("${person.name} is not Alice")
+    })
+}
+
+people.filter(fun(person): Boolean {
+    return person.age < 30
+})
+
+// expression body로 anonymous function 사용
+people.filter(fun(person) = person.age < 30)
+```
+
 ## 4. Summary
 
