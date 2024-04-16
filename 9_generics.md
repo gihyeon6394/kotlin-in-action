@@ -138,6 +138,123 @@ class ProcessorNotNull<T : Any> {
 
 ## 2. Generics at runtime: erased and reified type parameters
 
+- _type erasure_ : type arguments가 런타임에는 지워짐
+- `inline` function을 사용하면 reified type parameter를 사용할 수 있음
+    - type argument를 런타임에도 알 수 있게 해줌
+
+### Generics at runtime: type checks and casts
+
+![img_37.png](img_37.png)
+
+- Kotlin도 Java 처럼 런타임에 generic이 지워짐
+- 즉, 제네릭 클래스의 인스턴스는 런타임에 type argument를 알 수 없음
+- 장점 : 타입 정보를 메모리에 가지고 있을 필요 없음 (리소스 절약)
+- e.g. `List<String>` -> runtime에는 `List`로만 알 수 있음
+
+```kotlin
+if (value is List<String>) { // ERROR: Cannot check for instance of erased type
+    // ...
+}
+
+if (value is List<*>) { // OK: type erasure
+    // ...
+}
+
+fun printSum(c: Collection<*>) {
+    val intList = c as? List<Int>
+        ?: throw IllegalArgumentException("List is expected")
+
+    println(intList.sum())
+}
+
+fun printSumBetter(c: Collection<Int>) {
+    if (c is List<Int>) {
+        println(c.sum())
+    }
+}
+
+fun main() {
+    printSum(setOf(1, 2, 3)) // IllegalArgumentException
+    printSum(listOf("a", "b", "c")) // ClassCastException
+
+    printSumBetter(
+        listOf(
+            "a",
+            "b",
+            "c"
+        )
+    ) // compile error : Type mismatch: inferred type is List<String> but Collection<Int> was expected
+}
+```
+
+- _star projection_ : `List<*>` (모든 type argument를 받을 수 있음)
+
+### Declaring functions with reified type parameters
+
+```kotlin
+fun <T> isA(value: Any) = value is T // ERROR: Cannot check for instance of erased type
+```
+
+- inline function은 reified type parameter를 사용할 수 있음
+    - `inline` function : compiler가 function body를 호출하는 곳에 복사해 넣음
+    - 람다와 사용하면 익명 클래스 생성을 줄여 성능 향상
+
+```kotlin
+inline fun <reified T> isA(value: Any) = value is T
+
+fun main() {
+    println(isA<String>("abc")) // true
+    println(isA<String>(123)) // false
+
+    // using filterIsInstance standard library function
+    val items = listOf("one", 2, "three")
+    println(items.filterIsInstance<String>()) // [one, three]
+}
+
+// filterIsInstance standard library function (축약)
+inline fun <reified T> Iterable<*>.filterIsInstance(): List<T> {
+    val destination = mutableListOf<T>()
+    for (element in this) {
+        if (element is T) { // reified type parameter
+            destination.add(element)
+        }
+    }
+    return destination
+}
+```
+
+#### inline function에서만 reification이 가능한 이유
+
+- `inline` function은 컴파일러가 호출한 곳에 바이트 코드를 넣음
+- 즉, 인라인 함수를 호출한 곳마다 다른 바이트 코드가 생성됨 (컴파일러는 이미 type argument를 알고 있음)
+
+### Replacting class references with reified type parameters
+
+```kotlin
+val serviceImpl = ServiceLoader.load(Service::class.java)
+// better
+val serviceImpl = loadService<Service>()
+
+inline fun <reified T> loadService() {
+    return ServiceLoader.load(T::class.java)
+}
+```
+
+- `::class.java` : `java.lang.Class` 에 상응하는 Kotlin class 가져옴
+
+### Restrictions on reified type parameters
+
+- 가능
+    - `is`, `!is`, `as`, `as?` 연산자 사용 (type check, cast)
+    - `::class` 같은 Kotlin reflection API 사용
+    - `java.lang.Class` 사용
+    - 다른 function을 호출할 떄 argument로 사용
+- 불가능
+    - type parameter로서 정의된 클래스의 새로운 인스턴스 생성 (e.g. `T()`)
+    - type parameter 클래스의 companion object에 접근
+    - non-reified type parameter를 사용한 함수 호출
+    - 클래스의 type parameter, property, non-inline function을 `reified`로 선언
+
 ## 3. Variance: generics and subtyping
 
 ## 4. Summary
