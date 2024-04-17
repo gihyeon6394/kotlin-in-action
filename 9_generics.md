@@ -257,5 +257,78 @@ inline fun <reified T> loadService() {
 
 ## 3. Variance: generics and subtyping
 
+- _variance_ : subtyping 관계를 유지하면서 generic type을 사용하는 방법
+    - e.g. `List<String>`은 `List<Any>`의 subtype이 아님
+
+### Why variance exists: passing an argument to a function
+
+```kotlin
+fun printContents(list: List<Any>) {
+    println(list.joinToString())
+}
+
+fun addAnswer(list: MutableList<Any>) {
+    list.add(42)
+}
+
+fun main() {
+    val strings = listOf("abc", "bac")
+    printContents(strings) // abc, bac
+
+    val strs = mutableListOf("abc", "bac")
+    addAnswer(strs) // compile err : Type mismatch: inferred type is MutableList<String> but MutableList<Any> was expected
+}
+```
+
+### Classes, types, and subtypes
+
+![img_38.png](img_38.png)
+
+- non-generic class에서는 _type_ 이랑 _class_ 가 같음
+    - e.g. `var x: String` 에서 `x`의 타입은 `String`이고 클래스도 `String`임
+    - `var x: String?` 에서 `x`는 2가지 타입 가능 (`String` or `null`)
+- `List` 는 type이 아님!, `List` 는 class
+    - `List` class는 이런 타입이 가능 `List<String>`, `List<Int>`, `List<Any>`, `List<List<String>>`, ...
+- generic class는 무한한 타입이 가능함
+- `subtype` : `B`가 `A`의 subtype이면 `B`를 `A` 대신 사용할 수 있음
+    - `Number`의 subtype은 `Int`, `Double`, `Float`, ...
+- 컴파일른 다음 떄마다 매번 subtype을 확인함
+    - value를 변수에 할당 (subtype만 가능)
+    - function에 argument 전달
+
+```kotlin
+fun test(i: Int) {
+    val n: Number = i
+    fun f(s: String) {
+        // ... 
+    }
+    f(i) // compile error : Type mismatch: inferred type is Int but String was expected
+}
+```
+
+![img_39.png](img_39.png)
+
+- 일반적으로 subtype이면 subclass임
+- nullable은 non-nullable의 subtype이 될 수 없음
+
+```kotlin
+val s: String = "abc"
+val t: String? = s
+
+val ss: String = t // compile err : Type mismatch: inferred type is String? but String was expected
+```
+
+- _covariant_ (공변) : `A`가 `B`의 subtype이면 `List<A>`는 `List<B>`의 subtype
+    - e.g. `List<String>`은 `List<Any>`의 subtype
+- _invariant_ (무공변) : `List<A>`와 `List<B>`는 서로 subtype이 아님
+
+### Convariance: preserved subtyping relation
+
+### Contravariance: reversed subtyping relation
+
+### Use-site variance: specifying variance for type arguments
+
+### Star projection: using * instead of a type argument
+
 ## 4. Summary
 
