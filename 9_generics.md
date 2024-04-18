@@ -324,6 +324,74 @@ val ss: String = t // compile err : Type mismatch: inferred type is String? but 
 
 ### Convariance: preserved subtyping relation
 
+- `Cat`이 `Animal`의 subtype이면 `Producer<Cat>`은 `Producer<Animal>`의 subtype이어야 함
+- kotlin에서 공변을 구현하기 위해서 `out` 키워드를 사용함
+- _out_ position일 떄만 사용 권장
+    - _out_ : `T` type의 값을 생산함, `T` 를 사용 (consume) 하지 않음
+
+![img_40.png](img_40.png)
+
+```kotlin
+// T에 대해 공변으로 선언
+interface Producer<out T> {
+    fun produce(): T
+}
+
+open class Animal {
+    fun feed() {
+        println("feed")
+    }
+}
+
+class Cat : Animal() {
+    fun cleanLitter() {
+        println("clean")
+    }
+}
+
+class Herd<T : Animal> { // TODO: 공변으로 선언 out T
+    val size: Int get() = 0
+    operator fun get(i: Int): T { // T를 오직 out position에서만 사용
+        TODO()
+    }
+}
+
+fun feedAll(animals: Herd<Animal>) {
+    for (i in 0 until animals.size) {
+        animals[i].feed()
+    }
+}
+
+fun takeCareOfCats(cats: Herd<Cat>) {
+    for (i in 0 until cats.size) {
+        cats[i].cleanLitter()
+    }
+    feedAll(cats) // compile error : Type mismatch: inferred type is Herd<Cat> but Herd<Animal> was expected
+}
+```
+
+```kotlin
+// dangerous : T에 대헤 out으로 선언했지만 T를 consume하는 함수를 만들 수 있는 상태
+class Herd<out T : Animal>(vararg animals: T) {
+    // ...
+}
+
+
+// dangerouse : T는 out 할 수 없음, leadAnimal에 대한 setter가 이미 있음 
+class Herd<T : Animal>(var leadAnimal: T, vararg animals: T) {
+    // ...
+}
+
+// safe : out T, private leadAnimal
+class Herd<out T : Animal>(private var leadAnimal: T, vararg animals: T) {
+
+}
+```
+
+- constructor parameter는 `in`, `out` 둘 다 아님
+    - `val` 은 getter를 제공하므로 `out` position에 사용됨
+    - `var` 은 getter와 setter를 제공하므로 `out`, `in` position에 사용됨
+
 ### Contravariance: reversed subtyping relation
 
 ### Use-site variance: specifying variance for type arguments
