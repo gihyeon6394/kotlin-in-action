@@ -394,6 +394,39 @@ class Herd<out T : Animal>(private var leadAnimal: T, vararg animals: T) {
 
 ### Contravariance: reversed subtyping relation
 
+![img_41.png](img_41.png)
+
+- _contravariance_ 은 convariance의 반대 컨셉
+- type parameter에 대해 _contravariant_ 로 선언한 제네릭 클래스는 다음 관계가 성립
+    - `A`가 `B`의 subtype이면 `Consumer<B>`는 `Consumer<A>`의 subtype
+- e.g. `Comparator<String>`은 `Comparator<Any>`의 subtype이어야 함
+
+```kotlin
+// T에 대해 반공변으로 선언
+interface Comparator<in T> {
+    fun compare(e1: T, e2: T): Int {
+        // ...
+    }
+}
+
+fun main() {
+    val anyComparator = Comparator<Any> { e1, e2 -> e1.hashCode() - e2.hashCode() }
+    val strings = listOf("abc", "bac")
+    strings.sortedWith(anyComparator)
+}
+```
+
+![img_42.png](img_42.png)
+
+```kotlin
+// sub
+interface Function1<in P, out R> {
+    operator fun invoke(p: P): R
+}
+```
+
+![img_43.png](img_43.png)
+
 ### Use-site variance: specifying variance for type arguments
 
 ### Star projection: using * instead of a type argument
