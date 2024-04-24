@@ -429,6 +429,56 @@ interface Function1<in P, out R> {
 
 ### Use-site variance: specifying variance for type arguments
 
+- _declaration-site variance_ : 클래스 선언 시 variance를 지정
+- _use_site variance_ : type argument를 사용할 때 variance를 지정
+
+```kotlin
+// T가 invariant type 임에도, consume, produce
+
+fun <T : R, R> copyData(source: MutableList<T>, destination: MutableList<R>) {
+    for (item in source) {
+        destination.add(item)
+    }
+}
+
+fun main() {
+    val numbers = mutableListOf(1, 2, 3)
+    val anyItems = mutableListOf<Any>() // Int는 Any의 subtype
+    copyData(numbers, anyItems)
+    println(anyItems) // [1, 2, 3]
+
+}
+```
+
+```kotlin
+// T를 out position으로 선언
+// type projection
+fun <T> copyData(source: MutableList<out T>, destination: MutableList<T>) {
+    for (item in source) {
+        destination.add(item)
+    }
+}
+```
+
+- variance modifier를 사용하면 type argument를 사용할 때 variance를 지정할 수 있음
+- `<out T>` : T를 out position으로 선언
+    - `source`의 `T`는 `destination`의 `T`의 subtype이어야 함
+    - `T` 를 in position으로 사용하면 컴파일러가 에러를 발생시킴
+
+```kotlin
+val list: MutableList<out Number> = mutableListOf(1, 2, 3)
+list.add(4) // compile err : Out-projected type 'MutableList<out Number>' prohibits the use of 'public abstract fun add(element: E): Boolean defined in kotlin.collections.MutableList'
+```
+
+```kotlin
+// T를 in position으로 선언 : destination의 T는 source element의 supertype이어야 함
+fun <T> copyData(source: MutableList<T>, destination: MutableList<in T>) {
+    for (item in source) {
+        destination.add(item)
+    }
+}
+```
+
 ### Star projection: using * instead of a type argument
 
 ## 4. Summary
