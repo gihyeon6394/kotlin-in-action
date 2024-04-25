@@ -551,14 +551,31 @@ object Validators {
             ?: throw IllegalArgumentException("No validator for ${kClass.simpleName}")
 }
 
-fun main(){
+fun main() {
     Validators.registerValidator(String::class, DefaultStringValidator)
     Validators.registerValidator(Int::class, DefaultIntValidator)
-  
+
     println(Validators[String::class].validate("Kotlin")) // true
     println(Validators[Int::class].validate(42)) // true
 }
 ```
 
 ## 4. Summary
+
+- Kotlin Generics는 Java와 비슷
+    - Java처럼 generic funciton, class 가능
+- Java처럼, generic type에 대한 type argument는 런타임에 지워짐
+- `is` 연산자와 type argument 사용 불가능 (런타임에 지워짐)
+- `inline` function을 사용하면 reified type parameter를 사용할 수 있음
+    - `is` 연산자와 type argument 사용 가능
+- Varianc (공변) : base class를 가진 2개의 generic type중 서로 subtype/supertype 관계를 지정하는 방법
+- `out` position : type parameter에 covariant (공변) 선언
+- `in` position : type parameter에 contravariant (반공변) 선언
+- Kotlin의 `List` 는 covariant (공변)로 선언되어 있음
+    - 즉, `List<String>`은 `List<Any>`의 subtype
+- funtion interface는 첫번째 파라미터는 contravariant (반공변), 두번째 파라미터는 covariant (공변)로 선언됨
+    - `(Animal) -> Int` 는 `(Cat) -> Number`의 subtype
+- _declaration site variance_ : 클래스 선언 시 variance를 지정
+- _use-site variance_ : type argument를 사용할 때 variance를 지정
+- star-projection 문법은 type arguments를 모르거나 중요치 않을때 사용
 
