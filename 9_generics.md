@@ -481,5 +481,84 @@ fun <T> copyData(source: MutableList<T>, destination: MutableList<in T>) {
 
 ### Star projection: using * instead of a type argument
 
+- _star-projection_ 문법 : `*` 를 사용하여 type argument를 생략할 수 있음
+- `List<*>` : 모든 type argument를 받을 수 있음
+- `List<*>` 와 `List<Any?>` 는 다름
+    - `List<*>` : 모든 type argument를 받을 수 있으나 compile-time에는 알 수 없음
+    - `List<Any?>` : 모든 type argument를 받을 수 있으며 `Any?` 타입임
+
+```kotlin
+val list: MutableList<Any?> = mutableListOf("abc", 1, 2.0)
+val chars = mutableListOf('a', 'b', 'c')
+val unkownEl: MutableList<*> = if (Random().nextBoolean()) list else chars
+unkownEl.add(42) // compile err : Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: public abstract fun add(element: Nothing): Boolean defined in kotlin.collections.MutableList
+```
+
+- 유용할 떄 : type argument 정보가 중요치 않을 때
+    - signature의 type argument 사용하는 메서드가 전혀 없음
+    - data를 읽기많만 하고 type은 신경 쓰지 않음
+
+```kotlin
+fun printFirst(list: List<*>) {
+    if (list.isNotEmpty()) {
+        println(list.first())
+    }
+}
+
+fun <T> printFirst(list: List<T>) {
+    if (list.isNotEmpty()) {
+        println(list.first())
+    }
+}
+```
+
+````kotlin
+interface FieldValidator<in T> {
+    fun validate(input: T): Boolean
+}
+object DefaultStringValidator : FieldValidator<String> {
+    override fun validate(input: String) = input.isNotEmpty()
+}
+object DefaultIntValidator : FieldValidator<Int> {
+    override fun validate(input: Int) = input >= 0
+}
+
+fun main() {
+    val validators = mutableMapOf<KClass<*>, FieldValidator<*>>()
+    validators[String::class] = DefaultStringValidator
+    validators[Int::class] = DefaultIntValidator
+
+    validators[String::class]!!.validate("") // compile err : Kotlin: Type mismatch: inferred type is String but Nothing was expected
+
+    val stringValidator = validators[Int::class] as FieldValidator<String> // compiled
+    stringValidator.validate("") // runtime err : java.lang.ClassCastException: DefaultIntValidator cannot be cast to DefaultStringValidator
+}
+````
+
+```kotlin
+// solution
+object Validators {
+    private val validators = mutableMapOf<KClass<*>, FieldValidator<*>>()
+    fun <T : Any> registerValidator(
+        kClass: KClass<T>, fieldValidator: FieldValidator<T>,
+    ) {
+        validators[kClass] = fieldValidator
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    operator fun <T : Any> get(kClass: KClass<T>): FieldValidator<T> =
+        validators[kClass] as? FieldValidator<T>
+            ?: throw IllegalArgumentException("No validator for ${kClass.simpleName}")
+}
+
+fun main(){
+    Validators.registerValidator(String::class, DefaultStringValidator)
+    Validators.registerValidator(Int::class, DefaultIntValidator)
+  
+    println(Validators[String::class].validate("Kotlin")) // true
+    println(Validators[Int::class].validate(42)) // true
+}
+```
+
 ## 4. Summary
 
