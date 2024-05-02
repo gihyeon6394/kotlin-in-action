@@ -281,6 +281,24 @@ fun main() {
 
 ### Implementing object serialization using reflection
 
+```kotlin
+// jKid
+fun serialize(obj: Any): String = buildString { serializeObject(obj) }
+
+// my extension func
+private fun StringBuilder.serializeObject(x: Any) {
+    val kClass = obj.javaClass.kotlin
+    val properties = kClass.memberProperties
+    properties.joinToStringBuilder(
+        this, prefix = "{", postfix = "}"
+    ) { prop ->
+        serializeString(prop.name)
+        append(": ")
+        serializePropertyValue(prop.get(obj))
+    }
+}
+```
+
 ### Customizing serialization with annotations
 
 ### JSON parsing and object deserialization
