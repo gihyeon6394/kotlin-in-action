@@ -220,5 +220,72 @@ data class Person(
 
 ## 2. Reflection: introspecting Kotlin objects at runtime
 
+- Reflection : run-time에 동적으로 object의 프로퍼티, 메서드에 접근
+    - e.g. JSON 직렬화 라이브러리는 런타임에 동적으로 프로퍼티에 접근해야함
+- Kotlin의 reflection 2가지 방법
+    - standard Java reflection API 사용 `java.lang.reflect`
+    - Kotlin reflection API 사용 `kotlin.reflect`
+
+### The Kotlin reflection API: KClass, KCallable, KFunction, and KProperty
+
+![img_49.png](img_49.png)
+
+```kotlin
+class Person(val name: String, val age: Int)
+
+fun main() {
+    val person = Person("Alice", 29)
+    val kClass = person.javaClass.kotlin
+    println(kClass.simpleName) // Person
+    kClass.memberProperties.forEach { println(it.name) } // name, age
+}
+```
+
+- `KClass` : Java의 `java.lang.Class` 와 유사
+    - `MyClass::class` : `KClass<MyClass>` 타입의 객체를 반환
+
+```kotlin
+fun foo(x: Int) = println(x)
+fun main() {
+    val kFunction = ::foo
+    kFunction.call(42) // 42
+
+    val kFunction2: KFunction2<Int, Int, Int> = ::sum
+    println(kFunction2.invoke(1, 2) + kFunction2(3, 4)) // 10
+}
+```
+
+- `KCallable` : function, property의 super interface
+
+```kotlin
+
+var counter = 0
+
+class Person(val name: String, val age: Int)
+
+fun main() {
+    val kProperty = ::counter
+    kProperty.setter.call(21)
+    println(kProperty.get()) // 21
+
+    val person = Person("Alice", 29)
+    val memberProperty = Person::age // KProperty<Person, Int>
+    println(memberProperty.get(person)) // 29
+}
+```
+
+- `KProperty1` : 1개의 파라미터를 받는 property
+- _member property_ : 클래스의 property
+- top level이나 class에 선언된 property에만 접근 가능
+    - local variable 에 접근 불가
+
+### Implementing object serialization using reflection
+
+### Customizing serialization with annotations
+
+### JSON parsing and object deserialization
+
+### Final deserialization step: callBy() and creating objects using reflection
+
 ## 3. Summary
 
