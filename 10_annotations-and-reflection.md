@@ -349,6 +349,82 @@ private fun StringBuilder.serializeProperty(
 
 ### JSON parsing and object deserialization
 
+![img_50.png](img_50.png)
+
+```kotlin
+inline fun <reified T : Any> deserialize(json: String): T
+
+data class Author(val name: String)
+data class Book(val title: String, val author: Author)
+
+fun main() {
+    val json = """{"title": "Catch-22", "author": {"name": "Joseph Heller"}}"""
+    val book = deserialize<Book>(json)
+    println(book) // Book(title=Catch-22, author=Author(name=Joseph Heller))
+}
+```
+
+```kotlin
+interface JsonObject {
+    fun setSimpleProperty(propertyName: String, value: Any?)
+    fun createObject(propertyName: String): JsonObject
+    fun createArray(propertyName: String): JsonObject
+}
+
+// top-level deserialization function
+fun <T : Any> deserialize(json: Reader, targetClass: KClass<T>): T {
+    val seed = ObjectSeed(targetClass, ClassInfoCache())
+    Parser(json, seed).parse()
+    return seed.spawn()
+}
+
+interface Seed : JsonObject {
+    fun spawn(): Any?
+    fun createCompositeProperty(
+        propertyName: String,
+        isList: Boolean,
+    ): JsonObject
+
+    override fun createObject(propertyName: String) =
+        createCompositeProperty(propertyName, false)
+
+    override fun createArray(propertyName: String) =
+        createCompositeProperty(propertyName, true)
+    // ...
+}
+
+// deserialize object
+class ObjectSeed<out T : Any>(
+    targetClass: KClass<T>,
+    val classInfoCache: ClassInfoCache,
+) : Seed {
+    private val classInfo: ClassInfo<T> = classInfoCache[targetClass]
+    private val valueArguments = mutableMapOf<KParameter, Any?>()
+    private val seedArguments = mutableMapOf<KParameter, Seed>()
+    private val arguments: Map<KParameter, Any?>
+        get() = valueArguments +
+                seedArguments.mapValues { it.value.spawn() }
+    override fun setSimpleProperty(propertyName: String, value: Any?) {
+        val param = classInfo.getConstructorParameter(propertyName)
+        valueArguments[param] =
+            classInfo.deserializeConstructorArgument(param, value)
+    }
+    override fun createCompositeProperty(
+        propertyName: String, isList: Boolean,
+    ): Seed {
+        val param = classInfo.getConstructorParameter(propertyName)
+        val deserializeAs =
+            classInfo.getDeserializeClass(propertyName)
+        val seed = createSeedForType(
+            deserializeAs ?: param.type.javaType, isList
+        )
+        return seed.apply { seedArguments[param] = this }
+    }
+    override fun spawn(): T =
+        classInfo.createInstance(arguments)
+}
+```
+
 ### Final deserialization step: callBy() and creating objects using reflection
 
 ## 3. Summary
