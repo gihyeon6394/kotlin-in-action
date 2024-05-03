@@ -301,6 +301,52 @@ private fun StringBuilder.serializeObject(x: Any) {
 
 ### Customizing serialization with annotations
 
+```kotlin
+// extension function
+val properties = kClass.memberProperties
+    .filter { it.findAnnotation<JsonExclude>() == null }
+```
+
+```kotlin
+annotation class JsonName(val name: String)
+
+annotation class CustomSerializer(
+    val serializerClass: KClass<out ValueSerializer<*>>,
+)
+data class Person(
+    @JsonName("alias") val firstName: String,
+    val age: Int,
+    @CustomSerializer(DateSerializer::class) val birthDate: Date,
+)
+
+
+fun main() {
+    val jsonNameAnn = prop.findAnnotation<JsonName>()
+    val propName = jsonNameAnn?.name ?: prop.name // @JsonName이 없으면 property name 사용
+}
+
+private fun StringBuilder.serializeObject(obj: Any) {
+    obj.javaClass.kotlin.memberProperties
+        .filter { it.findAnnotation<JsonExclude>() == null } // @JsonExclude가 없는 property만 직렬화
+        .joinToStringBuilder(this, prefix = "{", postfix = "}") {
+            serializeProperty(it, obj)
+        }
+}
+
+private fun StringBuilder.serializeProperty(
+    prop: KProperty1<Any, *>, obj: Any,
+) {
+    val name = prop.findAnnotation<JsonName>()?.name ?: prop.name
+    serializeString(name)
+    append(": ")
+    val value = prop.get(obj)
+    val jsonValue =
+        prop.getSerializer()?.toJsonValue(value) // @CustomSerializer가 있으면 사용
+            ?: value // 없으면 그냥 사용
+    serializePropertyValue(jsonValue)
+}
+```
+
 ### JSON parsing and object deserialization
 
 ### Final deserialization step: callBy() and creating objects using reflection
