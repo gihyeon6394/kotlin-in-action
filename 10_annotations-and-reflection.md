@@ -427,5 +427,64 @@ class ObjectSeed<out T : Any>(
 
 ### Final deserialization step: callBy() and creating objects using reflection
 
+```kotlin
+fun serializerForType(type: Type): ValueSerializer<out Any?>? =
+    when (type) {
+        Byte::class.java -> ByteSerializer
+        Int::class.java -> IntSerializer
+        Boolean::class.java -> BooleanSerializer
+        // ...
+        else -> null
+    }
+
+object BooleanSerializer : ValueSerializer<Boolean> {
+    override fun fromJsonValue(jsonValue: Any?): Boolean {
+        if (jsonValue !is Boolean) throw JKidException("Boolean expected")
+        return jsonValue
+    }
+    override fun toJsonValue(value: Boolean) = value
+}
+
+// cached reflection data storage
+class ClassInfoCache {
+    private val cacheData = mutableMapOf<KClass<*>, ClassInfo<*>>()
+
+    @Suppress("UNCHECKED_CAST")
+    operator fun <T : Any> get(cls: KClass<T>): ClassInfo<T> =
+        cacheData.getOrPut(cls) { ClassInfo(cls) } as ClassInfo<T>
+}
+```
+
+```kotlin
+class ClassInfo<T : Any>(cls: KClass<T>) {
+    private val constructor = cls.primaryConstructor!!
+    private val jsonNameToParamMap = hashMapOf<String, KParameter>()
+    private val paramToSerializerMap =
+        hashMapOf<KParameter, ValueSerializer<out Any?>>()
+    private val jsonNameToDeserializeClassMap =
+        hashMapOf<String, Class<out Any>?>()
+
+    init {
+        constructor.parameters.forEach { cacheDataForParameter(cls, it) }
+    }
+
+    fun getConstructorParameter(propertyName: String): KParameter =
+        jsonNameToParam[propertyName]!!
+    fun deserializeConstructorArgument(
+        param: KParameter, value: Any?,
+    ): Any? {
+        val serializer = paramToSerializer[param]
+        if (serializer != null) return serializer.fromJsonValue(value)
+        validateArgumentType(param, value)
+        return value
+    }
+    fun createInstance(arguments: Map<KParameter, Any?>): T {
+        ensureAllParametersPresent(arguments)
+        return constructor.callBy(arguments)
+    }
+// ...
+}
+```
+
 ## 3. Summary
 
