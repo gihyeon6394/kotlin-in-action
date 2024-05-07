@@ -488,3 +488,17 @@ class ClassInfo<T : Any>(cls: KClass<T>) {
 
 ## 3. Summary
 
+- Kotlin의 annotation 문법은 Java와 거의 비슷
+- Java보다 더 넓은 범위의 타겟 지원 (file, expression)
+- anntoation arguments는 primitive type, String, enum, class reference, another annotation, array를 지원
+- use-site target은 어노테이션을 어디에 적용할지 지정 e.g `@get:Rule`
+- annotation class를 모든 파라미터가 `val` 인 생성자의 클래스로 선언 가능
+- Meta annotation으로 어노테이션을 어떻게 처리할지 지정 가능
+- reflection API로 method, property에 런타임에 동적으로 접근 가능
+    - `KClass`, `KCallable`, `KFunction`, `KProperty` 등의 클래스 사용
+- `Class::class` 로 `KClass` 인스턴스 얻을 수 있음
+- `KFunction`, `KProperty` 인터페이스 `KCallable`의 확장, `call()`
+- `KCallable.callBy()` 로 함수 호출 가능 (default parameter 지원)
+- `KFunciton0`, `KFunction1`, ... 등의 인터페이스로 다양한 개수의 파라미터 지원, `invoke()`
+- `KProperty1`, `KProperty2`, ... 등의 인터페이스로 다양한 개수의 리시버 지원
+
