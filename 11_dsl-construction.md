@@ -119,7 +119,172 @@ fun createAnotherTable() = createHTML().table {
 
 ## 2. Building structured APIs: lamdas with receivers in DSLs
 
-## 3. More fleible block nesting with the "invoke" convention
+- 람다와 리시버는 DSL에서 중요한 역할
+
+### Lamdas with receivers and extension functions types
+
+```kotlin
+// function type parameter
+fun buildString(
+    builderAction: (StringBuilder) -> Unit,
+): String {
+    val sb = StringBuilder()
+    builderAction(sb)
+    return sb.toString()
+}
+
+fun main() {
+    val s = buildString {
+        it.append("Hello, ")
+        it.append("World!")
+    }
+    println(s)
+}
+
+```
+
+![img_51.png](img_51.png)
+
+```kotlin
+// function type with receiver parameter
+fun buildString(
+    builderAction: StringBuilder.() -> Unit,
+): String {
+    val sb = StringBuilder()
+    sb.builderAction()
+    return sb.toString()
+}
+
+fun main() {
+    val s = buildString {
+        this.append("Hello, ")
+        append("World!")
+    }
+    println(s)
+}
+```
+
+- _receiver type_ : _extension function type_ 을 사용하면 람다의 리시버를 지정할 수 있음
+
+![img_52.png](img_52.png)
+
+```kotlin
+// lamda with receiver 를 변수에 저장
+val appendExcl: StirngBuilder.() -> Unit = { this.append("!") }
+
+fun main() {
+    val sb = StringBuilder("Hi")
+    sb.appendExcl()
+    println(sb)
+}
+```
+
+### using lamdas with receivers in HTML builder
+
+- _HTML builder_ : Kotlin DSL for HTML
+- _type-safe builders_
+
+```kotlin
+open class Tag
+class TABLE : Tag {
+    fun tr(init: TR.() -> Unit)
+}
+class TR : Tag {
+    fun td(init: TD.() -> Unit)
+}
+class TD : Tag
+
+fun createSimpleTable() = createHTML().table {
+    tr {
+        td { +"cell" }
+    }
+}
+
+```
+
+```kotlin
+// 명시적으로 receiver 지정
+fun createSimpleTable() = createHTML().table {
+        (this@table).tr {
+            (this@tr).td {
+                +"cell"
+            }
+        }
+    }
+```
+
+```kotlin
+open class Tag(val name: String) {
+    private val children = mutableListOf<Tag>()
+    protected fun <T : Tag> doInit(child: T, init: T.() -> Unit) {
+        child.init()
+        children.add(child)
+    }
+    override fun toString() =
+        "<$name>${children.joinToString("")}</$name>"
+}
+
+fun table(init: TABLE.() -> Unit) = TABLE().apply(init)
+class TABLE : Tag("table") {
+    fun tr(init: TR.() -> Unit) = doInit(TR(), init)
+}
+class TR : Tag("tr") {
+    fun td(init: TD.() -> Unit) = doInit(TD(), init)
+}
+class TD : Tag("td")
+
+fun createTable() =
+    table {
+        tr {
+            td {
+            }
+        }
+    }
+
+fun main() {
+    println(createTable())
+}
+```
+
+### Kotlin builders: enabling abstractions and reuse
+
+```kotlin
+fun buildDropdown() = createHTML().div(classes = "dropdown") {
+    button(classes = "btn dropdown-toggle") {
+        +"Dropdown"
+        span(classes = "caret")
+    }
+    ul(classes = "dropdown-menu") {
+        li { a("#") { +"Action" } }
+        li { a("#") { +"Another action" } }
+        li { role = "separator"; classes = setOf("divider") }
+        li { classes = setOf("dropdown-header"); +"Header" }
+        li { a("#") { +"Separated link" } }
+    }
+}
+```
+
+```kotlin
+// 중복/반복 코드를 제거 (별도 함수로 추출)
+fun dropdownExample() = createHTML().dropdown {
+        dropdownButton { +"Dropdown" }
+        dropdownMenu {
+            item("#", "Action")
+            item("#", "Another action")
+            divider()
+            dropdownHeader("Header")
+            item("#", "Separated link")
+        }
+    }
+fun StringBuilder.dropdown(
+    block: DIV.() -> Unit,
+): String = div("dropdown", block)
+fun UL.divider() = li { role = "separator"; classes = setOf("divider") }
+fun UL.dropdownHeader(text: String) = li { classes = setOf("dropdown-header"); +text }
+fun DIV.drodownMenu(block: UL.() -> Unit) = ul(classes = "dropdown-menu", block)
+```
+
+## 3. More flexible block nesting with the "invoke" convention
 
 ## 4. Kotlin DSLs in practice
 
