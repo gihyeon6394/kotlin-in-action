@@ -286,6 +286,100 @@ fun DIV.drodownMenu(block: UL.() -> Unit) = ul(classes = "dropdown-menu", block)
 
 ## 3. More flexible block nesting with the "invoke" convention
 
+- `invoke` convention : custom tyupe의 오브젝트를 함수처럼 호출할 수 있게 함
+
+### The “invoke” convention: objects callable as functions
+
+- 메서드 호출 문법없이 메서드 호출
+- e.g. `foo[bar]` -> `foo.get(bar)`
+
+```kotlin
+class Greeter(val greeting: String) {
+    operator fun invoke(name: String) {
+        println("$greeting, $name!")
+    }
+}
+
+fun main() {
+    val bavarianGreeter = Greeter("Servus")
+    bavarianGreeter("Dmitry") // Servus, Dmitry!
+}
+```
+
+- `bavarianGreeter("Dmitry")` 은 `bavarianGreeter.invoke("Dmitry")` 로 컴파일됨
+
+### The “invoke” convention and functional types
+
+```kotlin
+// 2개의 인자를 받는 함수
+interface Function2<in P1, in P2, out R> {
+    operator fun invoke(p1: P1, p2: P2): R
+}
+```
+
+- 람다 호출 시 `invoke` 메서드 호출
+
+```kotlin
+data class Issue(
+    val id: String, val project: String, val type: String,
+    val priority: String, val description: String,
+)
+class ImportantIssuesPredicate(val project: String) : (Issue) -> Boolean {
+    override fun invoke(issue: Issue): Boolean {
+        return issue.project == project && issue.isImportant()
+    }
+    private fun Issue.isImportant(): Boolean {
+        return type == "Bug" &&
+                (priority == "Major" || priority == "Critical")
+    }
+}
+
+fun main() {
+    val i1 = Issue("IDEA-154446", "IDEA", "Bug", "Major", "Save settings failed")
+    val i2 = Issue(
+        "KT-12183",
+        "Kotlin",
+        "Feature",
+        "Normal",
+        "Intention: convert several calls on the same receiver to with/apply"
+    )
+
+    val predicate = ImportantIssuesPredicate("IDEA")
+    for (issue in listOf(i1, i2).filter(predicate)) { // predicate를 람다처럼 호출
+        println(issue.id)
+    }
+}
+```
+
+### The “invoke” convention in DSLs: declaring dependencies in Gradle
+
+````
+dependencies {
+    compile("junit:junit:4.11")
+    compile("com.google.inject:guice:4.1.0")
+}
+````
+
+```kotlin
+class DependencyHandler {
+    fun compile(coordinate: String) {
+        println("Added dependency on $coordinate")
+    }
+    operator fun invoke(
+        body: DependencyHandler.() -> Unit,
+    ) {
+        body()
+    }
+}
+
+fun main() {
+    val dependencies = DependencyHandler()
+    dependencies {
+        compile("org.jetbrains.kotlin:kotlin-reflect:1.0.0")
+    }
+}
+```
+
 ## 4. Kotlin DSLs in practice
 
 ## 5. Summary
