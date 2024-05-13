@@ -382,4 +382,138 @@ fun main() {
 
 ## 4. Kotlin DSLs in practice
 
+### Chaining infix calls: "should" in test frameworks
+
+```kotlin
+infix fun <T> T.should(matcher: Matcher<T>) = matcher.test(this)
+
+fun main() {
+    s should startWith("kot") // s.startWith("kot")
+    "kotlin" should start with "kot"
+}
+```
+
+```kotlin
+// chained infix call을 지원하는 API 생성하기
+
+object start
+
+infix fun String.should(x: start): StartWrapper = StartWrapper(this)
+
+class StartWrapper(val value: String) {
+    infix fun with(prefix: String) =
+        if (!value.startsWith(prefix))
+            throw AssertionError(
+                "String does not start with $prefix: $value"
+            )
+
+    infix fun have(substring: String) =
+        if (!value.contains(substring))
+            throw AssertionError(
+                "String does not contain substring $substring: $value"
+            )
+}
+
+fun main() {
+    "kotlin" should start with "kot"
+    "kotlin" should have substring "otl"
+}
+```
+
+### Defining extensions on primitive types: handling dates
+
+```kotlin
+val Int.days: Period
+    get() = Period.ofDays(this)
+val Period.ago: LocalDate
+    get() = LocalDate.now() - this
+val Period.fromNow: LocalDate
+    get() = LocalDate.now() + this
+
+fun main() {
+    println(1.days.ago)
+    println(1.days.fromNow)
+}
+```
+
+### Member extension functions: internal DSLs for SQL
+
+- _member extensions_ : 클래스의 멤버이면서, 다른 타입의 확장이기도 한 fuction (or property)
+
+```kotlin
+class Table {
+    fun integer(name: String): Column<Int>
+    fun varchar(name: String, length: Int): Column<String>
+    fun <T> Column<T>.primaryKey(): Column<T>
+    fun Column<Int>.autoIncrement(): Column<Int>
+    // ...
+}
+
+object Country : Table() {
+    val id = integer("id").autoIncrement().primaryKey()
+    val name = varchar("name", 50)
+}
+```
+
+- `integer()`, `varchar()` : `Table` 클래스의 멤버이면서 `Column` 클래스의 확장
+
+```kotlin
+fun Table.select(where: SqlExpressionBuilder.() -> Op<Boolean>): Query
+
+object SqlExpressionBuilder {
+    infix fun <T> Column<T>.eq(t: T): Op<Boolean>
+    // ...
+}
+
+fun main() {
+    val result = (Country join Customer)
+        .select { Country.name eq "USA" }
+    result.forEach { println(it[Customer.name]) }
+
+}
+```
+
+### Anko: creating Android UIs dynamically
+
+```kotlin
+fun Context.alert(
+    message: String,
+    title: String,
+    init: AlertDialogBuilder.() -> Unit,
+)
+class AlertDialogBuilder {
+    fun positiveButton(text: String, callback: DialogInterface.() -> Unit)
+    fun negativeButton(text: String, callback: DialogInterface.() -> Unit)
+    // ...
+}
+
+fun Activity.showAreYouSureAlert(process: () -> Unit) {
+    alert(
+        title = "Are you sure?",
+        message = "Are you really sure?"
+    ) {
+        positiveButton("Yes") { process() }
+        negativeButton("No") { cancel() }
+    }
+}
+
+fun main() {
+    verticalLayout {
+        val email = editText {
+            hint = "Email"
+        }
+        val password = editText {
+            hint = "Password"
+            transformationMethod =
+                PasswordTransformationMethod.getInstance()
+        }
+        button("Log In") {
+            onClick {
+                logIn(email.text, password.text)
+            }
+        }
+    }
+}
+```
+
 ## 5. Summary
