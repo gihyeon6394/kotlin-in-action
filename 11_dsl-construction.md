@@ -517,3 +517,15 @@ fun main() {
 ```
 
 ## 5. Summary
+
+- Internal DSL : 더 풍부하게 API를 만들 수 있고, n개의 method call 구조로 만드는 API 디자인 패턴
+- Lamdas with receivers : Lamda body에서 메서드를 호출할 때, receiver를 명시적으로 지정할 수 있음
+- Lamda with recevier를 파라미터 타입으로 사용 : 함수 호출 시 리시버 인스턴스를 전달
+- Kotlin internal DSL은 코드 재활용성, 추상화가 뛰어남
+- infix call의 special named object를 사용하면, DSL을 더 풍부하게 만들 수 있음
+- primitive type의 extension은 DSL을 더 풍부하게 만들 수 있음
+- `invoke` convention을 사용하면, custom type을 함수처럼 호출할 수 있음
+- kotlinx.html 라이브러리 : HTML page를 생성하는 DSL 제공
+- kotlintest 라이브러리 : 테스트 assertion에서 뛰어난 가독성을 제공하는 internal DSL 내장
+- Exposed 라이브러리 : SQL을 생성하는 internal DSL 제공
+- Anko 라이브러리 : Android UI를 생성하는 internal DSL 제공
